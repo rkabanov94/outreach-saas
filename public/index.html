@@ -343,7 +343,7 @@ Happy to provide any details you might need.</textarea>
 
 <script>
 // ══ CONFIG — change this to your backend URL ══════════════════════════════════
-const API_BASE = 'https://your-backend.vercel.app';  // ← UPDATE THIS
+const API_BASE = window.location.origin;  // same domain, no config needed
 
 // ══ STATE ═════════════════════════════════════════════════════════════════════
 let authToken = localStorage.getItem('outreach_token');
