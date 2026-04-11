@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tangem Outreach Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #fff; --border: #e0ddd6; --border-strong: #c8c4bb;
+    --text: #1a1917; --muted: #6b6860;
+    --green: #1a6b3c; --green-bg: #e8f5ee;
+    --amber: #7a5200; --amber-bg: #fef3db;
+    --blue: #1a3f6b; --blue-bg: #e8f0fb;
+    --purple: #3d1a6b; --purple-bg: #f0ebfb;
+    --red: #7a1a1a; --red-bg: #fbeaea;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
+  /* ── AUTH OVERLAY ── */
+  #auth-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+  }
+  #auth-overlay.hidden { display: none; }
+  .auth-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 2rem; width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .auth-logo { font-size: 15px; font-weight: 500; margin-bottom: 0.25rem; }
+  .auth-sub  { font-size: 12px; color: var(--muted); margin-bottom: 1.5rem; }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 1.25rem; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .auth-tab  { flex: 1; padding: 7px 12px; font-size: 13px; font-weight: 500; background: var(--bg); color: var(--muted); cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .auth-tab.active { background: var(--text); color: #f5f4f0; }
+  .auth-err { background: var(--red-bg); color: var(--red); border: 1px solid #e8b4b4; border-radius: 6px; padding: 8px 12px; font-size: 12px; margin-bottom: 1rem; display: none; }
+  .auth-err.visible { display: block; }
+
+  /* ── MAIN APP ── */
+  header { background: var(--text); color: #f5f4f0; padding: 0.85rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 15px; font-weight: 500; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .plan-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 3px; background: rgba(255,255,255,0.12); cursor: default; }
+  .plan-badge.paid { background: rgba(100,200,130,0.25); color: #9fe8b4; }
+  .plan-badge.demo { background: rgba(255,200,80,0.2); color: #f2c94c; }
+  .user-email { font-family: 'DM Mono', monospace; font-size: 11px; opacity: 0.5; }
+  .btn-logout { font-family: 'DM Sans', sans-serif; font-size: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: rgba(255,255,255,0.6); padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+  .btn-logout:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* ── DEMO BANNER ── */
+  #demo-banner { background: var(--amber-bg); border-bottom: 1px solid #e8c97a; padding: 10px 2rem; display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--amber); }
+  #demo-banner.hidden { display: none; }
+  #demo-banner strong { font-weight: 500; }
+
+  .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 50px); }
+  nav { background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 0; position: sticky; top: 0; height: calc(100vh - 50px); overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.5rem; cursor: pointer; border-left: 3px solid transparent; font-size: 13px; color: var(--muted); user-select: none; transition: all 0.15s; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { border-left-color: var(--text); color: var(--text); font-weight: 500; background: var(--bg); }
+  .nav-item.locked { opacity: 0.4; cursor: not-allowed; }
+  .nav-step { font-family: 'DM Mono', monospace; font-size: 10px; background: var(--border); padding: 2px 6px; border-radius: 3px; }
+  .nav-item.active .nav-step { background: var(--text); color: #f5f4f0; }
+  .nav-lock { font-size: 11px; margin-left: auto; opacity: 0.5; }
+  main { padding: 2rem; max-width: 920px; }
+  .panel { display: none; } .panel.active { display: block; }
+  h2 { font-size: 20px; font-weight: 400; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 10px; }
+  label:first-child { margin-top: 0; }
+  input[type=text], input[type=password], input[type=email], textarea, select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); outline: none; transition: border-color 0.15s; }
+  input:focus, textarea:focus, select:focus { border-color: var(--border-strong); }
+  textarea { resize: vertical; min-height: 90px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+  .btn:hover { background: #ebe9e4; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--text); color: #f5f4f0; border-color: var(--text); }
+  .btn-primary:hover { background: #2d2c2a; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-upgrade { background: var(--amber-bg); color: var(--amber); border-color: #e8c97a; }
+  .btn-upgrade:hover { background: #fde8a4; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1rem; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .stat-value { font-size: 26px; font-weight: 300; font-family: 'DM Mono', monospace; }
+  .progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--text); transition: width 0.4s; width: 0%; }
+  .log { font-family: 'DM Mono', monospace; font-size: 11px; background: #1a1917; color: #a8a49e; border-radius: 6px; padding: 0.75rem 1rem; max-height: 220px; overflow-y: auto; margin-bottom: 1rem; }
+  .log-line { margin-bottom: 2px; }
+  .log-line.ok { color: #6fcf97; }
+  .log-line.err { color: #eb5757; }
+  .log-line.warn { color: #f2c94c; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  .tbl th { text-align: left; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .tbl td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; overflow: hidden; }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl tr:hover td { background: var(--bg); }
+  .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .bg { background: var(--green-bg); color: var(--green); }
+  .ba { background: var(--amber-bg); color: var(--amber); }
+  .bb { background: var(--blue-bg); color: var(--blue); }
+  .email-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 10px; margin: 2px 3px 2px 0; cursor: pointer; transition: all 0.12s; color: var(--text); }
+  .email-pill:hover { border-color: var(--border-strong); background: var(--surface); }
+  .email-pill.selected { background: var(--text); color: #f5f4f0; border-color: var(--text); }
+  .draft-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+  .draft-body { font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.7; background: var(--bg); border-radius: 4px; padding: 10px; margin-top: 8px; }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .toolbar-status { font-size: 12px; color: var(--muted); }
+  .empty-state { text-align: center; padding: 3rem; color: var(--muted); font-size: 13px; }
+  .tip { background: var(--blue-bg); border: 1px solid #c5d8f5; border-radius: 6px; padding: 0.75rem 1rem; font-size: 12px; color: var(--blue); margin-bottom: 1rem; line-height: 1.6; }
+  .tip-green { background: var(--green-bg); border: 1px solid #9fd4b4; border-radius: 6px; padding: 0.75rem 1rem; font-size: 12px; color: var(--green); margin-bottom: 1rem; }
+  .tip-amber { background: var(--amber-bg); border: 1px solid #e8c97a; border-radius: 6px; padding: 0.75rem 1rem; font-size: 12px; color: var(--amber); margin-bottom: 1rem; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  /* Upgrade gate */
+  .upgrade-gate { background: var(--surface); border: 1px solid #e8c97a; border-radius: 8px; padding: 2rem; text-align: center; margin: 1rem 0; }
+  .upgrade-gate h3 { font-size: 16px; font-weight: 400; margin-bottom: 0.5rem; }
+  .upgrade-gate p { font-size: 13px; color: var(--muted); margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH OVERLAY ══════════════════════════════════════════════════════════ -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">Tangem — Outreach Tool</div>
+    <div class="auth-sub">Sign in to continue</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Create account</button>
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <div id="auth-login-form">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com" />
+      <label style="margin-top:10px;">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" />
+      <button class="btn btn-primary" style="width:100%;margin-top:14px;justify-content:center;" onclick="doLogin()">Sign in →</button>
+    </div>
+    <div id="auth-register-form" style="display:none;">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="you@example.com" />
+      <label style="margin-top:10px;">Password</label>
+      <input type="password" id="reg-password" placeholder="min 8 characters" />
+      <button class="btn btn-primary" style="width:100%;margin-top:14px;justify-content:center;" onclick="doRegister()">Create account →</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center;">Free demo — 1 country, 1 keyword. Upgrade for full access.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HEADER ════════════════════════════════════════════════════════════════ -->
+<header>
+  <h1>Tangem — Cold Outreach Tool</h1>
+  <div class="header-right">
+    <span class="user-email" id="hdr-email"></span>
+    <span class="plan-badge" id="hdr-plan">demo</span>
+    <button class="btn-logout" onclick="doLogout()">Sign out</button>
+  </div>
+</header>
+
+<!-- ══ DEMO BANNER ══════════════════════════════════════════════════════════ -->
+<div id="demo-banner">
+  <span><strong>Demo mode</strong> — limited to 1 country × 1 keyword (step 2 only). Steps 3 and 4 require a paid plan.</span>
+  <button class="btn btn-upgrade btn-sm" onclick="startCheckout()">Upgrade →</button>
+</div>
+
+<div class="layout">
+  <nav>
+    <div class="nav-item active" onclick="showPanel('setup')"><span class="nav-step">01</span> Setup</div>
+    <div class="nav-item" onclick="showPanel('search')"><span class="nav-step">02</span> Search URLs</div>
+    <div class="nav-item" id="nav-contacts" onclick="guardedPanel('contacts')"><span class="nav-step">03</span> Find contacts <span class="nav-lock" id="lock-contacts">🔒</span></div>
+    <div class="nav-item" id="nav-drafts" onclick="guardedPanel('drafts')"><span class="nav-step">04</span> Drafts <span class="nav-lock" id="lock-drafts">🔒</span></div>
+  </nav>
+
+  <main>
+
+    <!-- ══ SETUP ══ -->
+    <div class="panel active" id="panel-setup">
+      <h2>Setup</h2>
+      <p class="subtitle">Configure target countries and keywords. API key is handled server-side.</p>
+
+      <div class="card">
+        <div class="card-title">Target countries</div>
+        <input type="text" id="country-search" placeholder="Type to search — e.g. united, arab, german…" oninput="filterCountries()" style="margin-bottom:8px;" />
+        <select id="countries" multiple style="min-height:200px;"></select>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" onclick="selectVisibleCountries()">Select all visible</button>
+          <button class="btn btn-sm" onclick="for(let o of document.getElementById('countries').options)o.selected=false">Deselect all</button>
+          <span id="country-sel-count" style="font-size:12px;color:var(--muted);align-self:center;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Keywords</div>
+        <textarea id="kwEn">crypto wallet
+crypto wallet app
+buy crypto wallet
+best crypto wallet
+secure crypto wallet
+hot crypto wallet
+cold crypto wallet
+hardware crypto wallet</textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="showPanel('search');startSearch()">Start searching →</button>
+      </div>
+    </div>
+
+    <!-- ══ SEARCH ══ -->
+    <div class="panel" id="panel-search">
+      <h2>Search URLs</h2>
+      <p class="subtitle">Google search via Serper per country. Deduplicated by root domain.</p>
+      <div id="demo-search-notice" class="tip-amber" style="display:none;">
+        Demo mode — showing results for <strong>1 country × 1 keyword</strong> only.
+        <button class="btn btn-upgrade btn-sm" style="margin-left:8px;" onclick="startCheckout()">Upgrade for full access</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Queries</div><div class="stat-value" id="s-queries">0</div></div>
+        <div class="stat"><div class="stat-label">Raw URLs</div><div class="stat-value" id="s-raw">0</div></div>
+        <div class="stat"><div class="stat-label">Dupes removed</div><div class="stat-value" id="s-dupes">0</div></div>
+        <div class="stat"><div class="stat-label">Unique domains</div><div class="stat-value" id="s-unique">0</div></div>
+      </div>
+      <div class="progress"><div class="progress-fill" id="search-bar"></div></div>
+      <div class="log" id="search-log"><div class="log-line">Ready.</div></div>
+      <div class="toolbar">
+        <button class="btn btn-sm" onclick="exportUrlsCSV()">Export CSV</button>
+        <button class="btn btn-sm" onclick="document.getElementById('urlCsvImport').click()">Import URLs CSV</button>
+        <input type="file" id="urlCsvImport" accept=".csv" style="display:none" onchange="importUrlsCSV(event)"/>
+        <button class="btn btn-sm" onclick="setAllUrlChecked(true)">Select all</button>
+        <button class="btn btn-sm" onclick="setAllUrlChecked(false)">Deselect all</button>
+        <span class="toolbar-status" id="search-status"></span>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="tbl">
+          <colgroup><col style="width:32px"><col style="width:28px"><col style="width:145px"><col style="width:78px"><col><col style="width:175px"></colgroup>
+          <thead><tr>
+            <th><input type="checkbox" id="url-check-all" checked title="Select/deselect all" onchange="setAllUrlChecked(this.checked)" style="cursor:pointer;"></th>
+            <th>#</th><th>Domain</th><th>Country</th><th>Keyword</th><th>Article URL</th>
+          </tr></thead>
+          <tbody id="url-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="url-empty">Results appear here as searches run.</div>
+      </div>
+      <div style="margin-bottom:0.75rem;font-size:12px;color:var(--muted);" id="url-sel-status"></div>
+      <button class="btn btn-primary" onclick="guardedPanel('contacts');startContactSearch()">Find contacts →</button>
+    </div>
+
+    <!-- ══ CONTACTS ══ -->
+    <div class="panel" id="panel-contacts">
+      <h2>Find contacts</h2>
+      <p class="subtitle">Click any email pill to select/deselect. Multiple selections = one draft per email.</p>
+
+      <div class="toolbar" style="margin-bottom:0.5rem;">
+        <button class="btn btn-sm" onclick="document.getElementById('contactsCsvImport').click()">↑ Upload contacts CSV</button>
+        <input type="file" id="contactsCsvImport" accept=".csv" style="display:none" onchange="importContactsCSV(event)"/>
+        <span style="font-size:12px;color:var(--muted);">Skip the search — upload a CSV with columns: Domain, Email(s), URL</span>
+      </div>
+      <hr class="divider">
+
+      <!-- Upgrade gate shown for demo users -->
+      <div class="upgrade-gate" id="contacts-gate" style="display:none;">
+        <h3>Paid feature</h3>
+        <p>Contact discovery (step 3) and draft creation (step 4) require a paid plan.</p>
+        <button class="btn btn-upgrade" onclick="startCheckout()">Upgrade now →</button>
+      </div>
+
+      <div id="contacts-content">
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Checked</div><div class="stat-value" id="c-checked">0</div></div>
+          <div class="stat"><div class="stat-label">With emails</div><div class="stat-value" id="c-found">0</div></div>
+          <div class="stat"><div class="stat-label">No email</div><div class="stat-value" id="c-none">0</div></div>
+          <div class="stat"><div class="stat-label">Total emails</div><div class="stat-value" id="c-total">0</div></div>
+        </div>
+        <div class="progress"><div class="progress-fill" id="contact-bar"></div></div>
+        <div class="log" id="contact-log"><div class="log-line">Waiting for URLs...</div></div>
+        <div class="toolbar">
+          <button class="btn btn-sm" onclick="exportContactsCSV()">Export contacts CSV</button>
+          <span class="toolbar-status" id="contact-status"></span>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="tbl">
+            <colgroup><col style="width:28px"><col style="width:130px"><col style="width:160px"><col><col style="width:65px"></colgroup>
+            <thead><tr><th>#</th><th>Domain</th><th>Article URL</th><th>Emails — click to select/deselect</th><th>Status</th></tr></thead>
+            <tbody id="contact-tbody"></tbody>
+          </table>
+          <div class="empty-state" id="contact-empty">Results appear here.</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPanel('drafts');buildDrafts()">Build drafts →</button>
+      </div>
+    </div>
+
+    <!-- ══ DRAFTS ══ -->
+    <div class="panel" id="panel-drafts">
+      <h2>Drafts</h2>
+      <p class="subtitle">One draft per selected email address. Edit template and rebuild anytime.</p>
+
+      <div class="upgrade-gate" id="drafts-gate" style="display:none;">
+        <h3>Paid feature</h3>
+        <p>Draft creation requires a paid plan.</p>
+        <button class="btn btn-upgrade" onclick="startCheckout()">Upgrade now →</button>
+      </div>
+
+      <div id="drafts-content">
+        <div class="card">
+          <div class="card-title">Message template</div>
+          <label style="margin-top:0;">Subject — {company} = domain name</label>
+          <input type="text" id="tmplSubject" value="Tangem <> {company}" />
+          <label>Body — {company} and {url}</label>
+          <textarea id="tmplBody" style="min-height:140px;">Hi team! My name is Roman and I represent Tangem, a company building secure hardware wallets for crypto users.
+
+I came across your article about hardware crypto wallets and thought Tangem could be a valuable addition: {url}
+
+Would you be open to discussing the possibility of including Tangem in the article?
+
+Happy to provide any details you might need.</textarea>
+          <div style="margin-top:10px;">
+            <button class="btn btn-sm" onclick="buildDrafts()">↻ Rebuild drafts</button>
+          </div>
+        </div>
+
+        <div class="tip-green">
+          Select the drafts you want to open using the checkboxes, then click <strong>Open selected in Gmail ↗</strong>.
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openSelectedInGmail()">Open selected in Gmail ↗</button>
+          <button class="btn btn-sm" onclick="selectAllDrafts()">Select all</button>
+          <button class="btn btn-sm" onclick="deselectAllDrafts()">Deselect all</button>
+          <button class="btn" onclick="exportDraftsTXT()">Export TXT</button>
+          <button class="btn" onclick="exportDraftsCSV()">Export CSV</button>
+          <span class="toolbar-status" id="draft-status"></span>
+        </div>
+        <div id="drafts-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══ CONFIG — change this to your backend URL ══════════════════════════════════
+const API_BASE = 'https://your-backend.vercel.app';  // ← UPDATE THIS
+
+// ══ STATE ═════════════════════════════════════════════════════════════════════
+let authToken = localStorage.getItem('outreach_token');
+let currentUser = null;   // { email, plan }
+let allUrls = [];
+let contacts = [];
+let drafts = [];
+
+// ══ AUTH HELPERS ══════════════════════════════════════════════════════════════
+async function apiFetch(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const res = await fetch(API_BASE + path, { ...opts, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function isPaid() { return currentUser?.plan === 'paid'; }
+
+function updateUI() {
+  const plan = currentUser?.plan || 'demo';
+  document.getElementById('hdr-email').textContent = currentUser?.email || '';
+  const planEl = document.getElementById('hdr-plan');
+  planEl.textContent = plan;
+  planEl.className = `plan-badge ${plan}`;
+
+  // Demo banner
+  document.getElementById('demo-banner').classList.toggle('hidden', plan === 'paid');
+
+  // Nav locks
+  const lockEls = ['contacts', 'drafts'];
+  lockEls.forEach(id => {
+    const lock = document.getElementById(`lock-${id}`);
+    if (lock) lock.style.display = isPaid() ? 'none' : '';
+  });
+
+  // Gates in panels
+  const showGate = !isPaid();
+  const gateIds = ['contacts-gate', 'drafts-gate'];
+  const contentIds = ['contacts-content', 'drafts-content'];
+  gateIds.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = showGate ? '' : 'none'; });
+  contentIds.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = showGate ? 'none' : ''; });
+}
+
+async function loadUser() {
+  if (!authToken) return;
+  try {
+    const data = await apiFetch('/api/auth/me');
+    currentUser = data.user;
+    updateUI();
+    document.getElementById('auth-overlay').classList.add('hidden');
+  } catch {
+    // Token invalid/expired
+    authToken = null;
+    localStorage.removeItem('outreach_token');
+  }
+}
+
+function setAuthError(msg) {
+  const el = document.getElementById('auth-err');
+  el.textContent = msg;
+  el.classList.toggle('visible', !!msg);
+}
+
+async function doLogin() {
+  setAuthError('');
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return setAuthError('Enter email and password.');
+  try {
+    const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    authToken = data.token;
+    currentUser = { email, plan: data.plan };
+    localStorage.setItem('outreach_token', authToken);
+    updateUI();
+    document.getElementById('auth-overlay').classList.add('hidden');
+  } catch (e) { setAuthError(e.message); }
+}
+
+async function doRegister() {
+  setAuthError('');
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!email || !password) return setAuthError('Enter email and password.');
+  if (password.length < 8) return setAuthError('Password must be at least 8 characters.');
+  try {
+    const data = await apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) });
+    authToken = data.token;
+    currentUser = { email, plan: data.plan };
+    localStorage.setItem('outreach_token', authToken);
+    updateUI();
+    document.getElementById('auth-overlay').classList.add('hidden');
+  } catch (e) { setAuthError(e.message); }
+}
+
+function doLogout() {
+  authToken = null;
+  currentUser = null;
+  localStorage.removeItem('outreach_token');
+  location.reload();
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && tab==='login') || (i===1 && tab==='register')));
+  document.getElementById('auth-login-form').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('auth-register-form').style.display = tab === 'register' ? '' : 'none';
+  setAuthError('');
+}
+
+async function startCheckout() {
+  try {
+    const data = await apiFetch('/api/billing/checkout', { method: 'POST' });
+    window.location.href = data.url;
+  } catch (e) { alert('Could not open checkout: ' + e.message); }
+}
+
+// ══ PANEL NAV ═════════════════════════════════════════════════════════════════
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  ['setup','search','contacts','drafts'].forEach((p,i) => {
+    if (p === id) document.querySelectorAll('.nav-item')[i].classList.add('active');
+  });
+}
+
+function guardedPanel(id) {
+  if (!isPaid() && (id === 'contacts' || id === 'drafts')) {
+    showPanel(id);  // show panel — gate is rendered inside
+    return false;
+  }
+  showPanel(id);
+  return true;
+}
+
+// ══ COUNTRY DATA (unchanged from v7) ═════════════════════════════════════════
+const ALL_COUNTRIES = [
+  ['es','es','Spanish','🇪🇸 Spain'],['gb','en','English','🇬🇧 United Kingdom'],
+  ['de','de','German','🇩🇪 Germany'],['fr','fr','French','🇫🇷 France'],
+  ['it','it','Italian','🇮🇹 Italy'],['nl','nl','Dutch','🇳🇱 Netherlands'],
+  ['pl','pl','Polish','🇵🇱 Poland'],['pt','pt','Portuguese','🇵🇹 Portugal'],
+  ['ru','ru','Russian','🇷🇺 Russia'],['ua','uk','Ukrainian','🇺🇦 Ukraine'],
+  ['be','nl','Dutch','🇧🇪 Belgium'],['ch','de','German','🇨🇭 Switzerland'],
+  ['at','de','German','🇦🇹 Austria'],['se','sv','Swedish','🇸🇪 Sweden'],
+  ['no','no','Norwegian','🇳🇴 Norway'],['dk','da','Danish','🇩🇰 Denmark'],
+  ['fi','fi','Finnish','🇫🇮 Finland'],['cz','cs','Czech','🇨🇿 Czech Republic'],
+  ['sk','sk','Slovak','🇸🇰 Slovakia'],['hu','hu','Hungarian','🇭🇺 Hungary'],
+  ['ro','ro','Romanian','🇷🇴 Romania'],['bg','bg','Bulgarian','🇧🇬 Bulgaria'],
+  ['hr','hr','Croatian','🇭🇷 Croatia'],['rs','sr','Serbian','🇷🇸 Serbia'],
+  ['gr','el','Greek','🇬🇷 Greece'],['lt','lt','Lithuanian','🇱🇹 Lithuania'],
+  ['lv','lv','Latvian','🇱🇻 Latvia'],['ee','et','Estonian','🇪🇪 Estonia'],
+  ['si','sl','Slovenian','🇸🇮 Slovenia'],['ie','en','English','🇮🇪 Ireland'],
+  ['us','en','English','🇺🇸 United States'],['ca','en','English','🇨🇦 Canada'],
+  ['mx','es','Spanish','🇲🇽 Mexico'],['br','pt','Portuguese','🇧🇷 Brazil'],
+  ['ar','es','Spanish','🇦🇷 Argentina'],['co','es','Spanish','🇨🇴 Colombia'],
+  ['in','en','English','🇮🇳 India'],['au','en','English','🇦🇺 Australia'],
+  ['jp','ja','Japanese','🇯🇵 Japan'],['kr','ko','Korean','🇰🇷 South Korea'],
+  ['sg','en','English','🇸🇬 Singapore'],['ae','ar','Arabic','🇦🇪 UAE'],
+  ['sa','ar','Arabic','🇸🇦 Saudi Arabia'],['il','he','Hebrew','🇮🇱 Israel'],
+  ['tr','tr','Turkish','🇹🇷 Turkey'],['za','en','English','🇿🇦 South Africa'],
+  ['ng','en','English','🇳🇬 Nigeria'],['eg','ar','Arabic','🇪🇬 Egypt'],
+];
+
+function initCountries() {
+  const sel = document.getElementById('countries');
+  sel.innerHTML = ALL_COUNTRIES.map(([gl, hl, lang, label]) =>
+    `<option value="${gl}|${hl}|${lang}">${label}</option>`).join('');
+  const spain = [...sel.options].find(o => o.value.startsWith('es|'));
+  if (spain) spain.selected = true;
+  updateCountSelCount();
+  sel.addEventListener('change', updateCountSelCount);
+}
+
+function filterCountries() {
+  const q = document.getElementById('country-search').value.toLowerCase().trim();
+  const sel = document.getElementById('countries');
+  const selected = new Set([...sel.options].filter(o=>o.selected).map(o=>o.value));
+  sel.innerHTML = ALL_COUNTRIES
+    .filter(([,,, label]) => !q || label.toLowerCase().includes(q))
+    .map(([gl, hl, lang, label]) =>
+      `<option value="${gl}|${hl}|${lang}" ${selected.has(`${gl}|${hl}|${lang}`) ? 'selected' : ''}>${label}</option>`
+    ).join('');
+  updateCountSelCount();
+}
+
+function selectVisibleCountries() {
+  [...document.getElementById('countries').options].forEach(o => o.selected = true);
+  updateCountSelCount();
+}
+
+function updateCountSelCount() {
+  const total = document.getElementById('countries').options.length;
+  const sel = [...document.getElementById('countries').options].filter(o=>o.selected).length;
+  document.getElementById('country-sel-count').textContent = sel ? `${sel} selected` : '';
+}
+
+// ══ SEARCH (calls backend proxy instead of Serper directly) ═══════════════════
+async function startSearch() {
+  allUrls = [];
+  document.getElementById('search-log').innerHTML = '';
+  document.getElementById('url-tbody').innerHTML = '';
+  document.getElementById('url-empty').style.display = 'block';
+  document.getElementById('search-bar').style.width = '0%';
+
+  const kwEn = document.getElementById('kwEn').value.trim().split('\n').map(k=>k.trim()).filter(Boolean);
+  const countries = Array.from(document.getElementById('countries').selectedOptions).map(o => {
+    const [gl, hl, langName] = o.value.split('|');
+    return { gl, hl, langName, label: o.text.replace(/\p{Emoji}/gu,'').trim() };
+  });
+  if (!countries.length) { alert('Select at least one country.'); return; }
+
+  // Build queries array — backend will enforce demo limits
+  const queries = [];
+  for (const c of countries) {
+    for (const kw of kwEn) {
+      queries.push({ q: kw, gl: c.gl, hl: 'en', label: c.label });
+    }
+  }
+
+  log('search-log', `Sending ${queries.length} queries to server${isPaid() ? '' : ' (demo: limited to 1×1)'}…`);
+
+  try {
+    document.getElementById('search-bar').style.width = '30%';
+    const data = await apiFetch('/api/search', {
+      method: 'POST',
+      body: JSON.stringify({ queries }),
+    });
+
+    if (data.demo) {
+      document.getElementById('demo-search-notice').style.display = '';
+    }
+
+    const domainSet = new Set();
+    let rawCount = 0, queryCount = 0;
+
+    for (const result of data.results) {
+      queryCount++;
+      if (result.error) {
+        log('search-log', `[${result.label}] "${result.q}" — Error: ${result.error}`, 'err');
+        continue;
+      }
+      log('search-log', `[${result.label}] "${result.q}" — ${result.organic.length} results`);
+      for (const r of result.organic) {
+        rawCount++;
+        const root = rootDomain(r.link);
+        if (!domainSet.has(root)) {
+          domainSet.add(root);
+          const entry = { url: r.link, domain: root, country: result.label, keyword: result.q };
+          allUrls.push(entry);
+          addUrlRow(entry, allUrls.length);
+          document.getElementById('url-empty').style.display = 'none';
+        }
+      }
+    }
+
+    document.getElementById('s-queries').textContent = queryCount;
+    document.getElementById('s-raw').textContent = rawCount;
+    document.getElementById('s-dupes').textContent = rawCount - allUrls.length;
+    document.getElementById('s-unique').textContent = allUrls.length;
+    document.getElementById('search-status').textContent = `${allUrls.length} unique domains`;
+    document.getElementById('search-bar').style.width = '100%';
+    log('search-log', `Done! ${allUrls.length} unique root domains.`, 'ok');
+
+  } catch (e) {
+    log('search-log', `Error: ${e.message}`, 'err');
+    document.getElementById('search-bar').style.width = '0%';
+    if (e.message.includes('401')) { doLogout(); }
+  }
+}
+
+// ══ CONTACTS (calls backend /api/scrape) ══════════════════════════════════════
+const SKIP_DOMAINS = ['wikipedia.org','youtube.com','reddit.com','play.google.com',
+  'apps.apple.com','amazon.','quora.com','medium.com','google.com',
+  'twitter.com','facebook.com','linkedin.com','instagram.com','apple.com'];
+
+async function startContactSearch() {
+  if (!isPaid()) { guardedPanel('contacts'); return; }
+  contacts = [];
+  document.getElementById('contact-log').innerHTML = '';
+  document.getElementById('contact-tbody').innerHTML = '';
+  document.getElementById('contact-empty').style.display = 'block';
+
+  const toProcess = allUrls.filter(u => u._checked !== false && !SKIP_DOMAINS.some(s => u.domain.includes(s)));
+  if (!toProcess.length) { log('contact-log','No URLs selected. Go back to step 2.','err'); return; }
+  log('contact-log', `Processing ${toProcess.length} domains…`);
+
+  let checked=0, withEmails=0, none=0, totalEmails=0;
+
+  for (let i = 0; i < toProcess.length; i++) {
+    const entry = toProcess[i];
+    document.getElementById('contact-bar').style.width = Math.round(((i+1)/toProcess.length)*100) + '%';
+    log('contact-log', `[${i+1}/${toProcess.length}] ${entry.domain}`);
+
+    let emails = [];
+    try {
+      // Try scraping first, then Google fallback
+      const scrapeData = await apiFetch('/api/scrape', {
+        method: 'POST',
+        body: JSON.stringify({ domain: entry.domain }),
+      });
+      emails = scrapeData.emails || [];
+
+      if (!emails.length) {
+        const gData = await apiFetch('/api/scrape/google', {
+          method: 'POST',
+          body: JSON.stringify({ domain: entry.domain }),
+        });
+        emails = gData.emails || [];
+      }
+    } catch(e) { log('contact-log', `  Error: ${e.message}`, 'err'); }
+
+    checked++;
+    if (emails.length) {
+      withEmails++; totalEmails += emails.length;
+      log('contact-log', `  ✓ ${emails.join(' | ')}`, 'ok');
+    } else {
+      none++;
+      log('contact-log', `  — no emails found`, 'warn');
+    }
+
+    const contactEntry = { ...entry, emails, selectedEmails: new Set() };
+    contacts.push(contactEntry);
+    addContactRow(contactEntry, i+1);
+    document.getElementById('contact-empty').style.display = 'none';
+
+    document.getElementById('c-checked').textContent = checked;
+    document.getElementById('c-found').textContent = withEmails;
+    document.getElementById('c-none').textContent = none;
+    document.getElementById('c-total').textContent = totalEmails;
+    document.getElementById('contact-status').textContent = `${totalEmails} emails across ${withEmails} domains`;
+
+    await sleep(300);
+  }
+  log('contact-log', `Done! ${totalEmails} emails across ${withEmails} domains.`, 'ok');
+}
+
+// ══ SHARED HELPERS (identical to v7) ═════════════════════════════════════════
+function log(id, msg, type='') {
+  const el = document.getElementById(id);
+  const d = document.createElement('div');
+  d.className = 'log-line ' + type;
+  d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function rootDomain(url) {
+  try {
+    let host = new URL(url).hostname.replace(/^www\./, '');
+    const parts = host.split('.');
+    if (parts.length > 2 && parts[parts.length-2].length <= 3) return parts.slice(-3).join('.');
+    return parts.slice(-2).join('.');
+  } catch { return url; }
+}
+function extractCompany(domain) {
+  const p = domain.split('.')[0];
+  return p.charAt(0).toUpperCase() + p.slice(1);
+}
+
+function addUrlRow(entry, i) {
+  entry._checked = true;
+  const idx = allUrls.length - 1;
+  const shortUrl = entry.url.length > 52 ? entry.url.slice(0,49) + '…' : entry.url;
+  const tr = document.createElement('tr');
+  tr.id = `url-row-${idx}`;
+  tr.innerHTML = `
+    <td style="text-align:center;"><input type="checkbox" checked style="cursor:pointer;" onchange="toggleUrlCheck(${idx},this.checked)" /></td>
+    <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${i}</td>
+    <td><strong>${entry.domain}</strong></td>
+    <td><span class="badge bb">${entry.country}</span></td>
+    <td style="color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.keyword}</td>
+    <td style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+      <a href="${entry.url}" target="_blank" style="color:var(--blue);" title="${entry.url}">${shortUrl}</a>
+    </td>`;
+  document.getElementById('url-tbody').appendChild(tr);
+  updateUrlSelStatus();
+}
+
+function toggleUrlCheck(idx, checked) {
+  if (allUrls[idx]) allUrls[idx]._checked = checked;
+  const row = document.getElementById(`url-row-${idx}`);
+  if (row) row.style.opacity = checked ? '1' : '0.4';
+  updateUrlSelStatus();
+  const all = allUrls.every(u => u._checked);
+  const none = allUrls.every(u => !u._checked);
+  const hdr = document.getElementById('url-check-all');
+  if (hdr) { hdr.checked = all; hdr.indeterminate = !all && !none; }
+}
+
+function setAllUrlChecked(checked) {
+  allUrls.forEach((u, idx) => {
+    u._checked = checked;
+    const row = document.getElementById(`url-row-${idx}`);
+    if (row) { row.style.opacity = checked ? '1' : '0.4'; const cb = row.querySelector('input[type=checkbox]'); if (cb) cb.checked = checked; }
+  });
+  const hdr = document.getElementById('url-check-all');
+  if (hdr) { hdr.checked = checked; hdr.indeterminate = false; }
+  updateUrlSelStatus();
+}
+
+function updateUrlSelStatus() {
+  const sel = allUrls.filter(u => u._checked).length;
+  const total = allUrls.length;
+  const el = document.getElementById('url-sel-status');
+  if (el) el.textContent = total ? `${sel} of ${total} domains selected for contact search` : '';
+}
+
+function addContactRow(c, i) {
+  const pills = c.emails.map(e =>
+    `<span class="email-pill ${c.selectedEmails.has(e) ? 'selected' : ''}"
+      onclick="toggleEmail('${c.domain}','${e.replace(/'/g,"\\'")}',this)">${e}</span>`
+  ).join('') || '<span style="color:var(--muted);font-size:11px;">—</span>';
+  const shortUrl = c.url.length > 40 ? c.url.slice(0,37) + '…' : c.url;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${i}</td>
+    <td><strong style="font-size:12px;">${c.domain}</strong></td>
+    <td style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${c.url}" target="_blank" style="color:var(--blue);" title="${c.url}">${shortUrl}</a></td>
+    <td style="padding-top:6px;padding-bottom:6px;">${pills}</td>
+    <td>${c.emails.length ? `<span class="badge bg">${c.emails.length} found</span>` : '<span class="badge ba">None</span>'}</td>`;
+  document.getElementById('contact-tbody').appendChild(tr);
+}
+
+function toggleEmail(domain, email, el) {
+  const c = contacts.find(c => c.domain === domain);
+  if (!c) return;
+  if (c.selectedEmails.has(email)) { c.selectedEmails.delete(email); el.classList.remove('selected'); }
+  else { c.selectedEmails.add(email); el.classList.add('selected'); }
+}
+
+// ══ DRAFTS ════════════════════════════════════════════════════════════════════
+function buildDrafts() {
+  if (!isPaid()) return;
+  drafts = [];
+  const subject = document.getElementById('tmplSubject').value;
+  const body    = document.getElementById('tmplBody').value;
+  const source  = contacts.length ? contacts : allUrls.map(u => ({...u, emails:[], selectedEmails: new Set()}));
+  for (const c of source) {
+    const company = extractCompany(c.domain);
+    const s = subject.replace(/{company}/g, company);
+    const b = body.replace(/{company}/g, company).replace(/{url}/g, c.url);
+    if (c.selectedEmails && c.selectedEmails.size > 0) {
+      for (const email of c.selectedEmails) {
+        drafts.push({ subject: s, body: b, email, domain: c.domain, url: c.url, checked: true });
+      }
+    }
+  }
+
+  const total = drafts.length;
+  document.getElementById('draft-status').textContent = total
+    ? `${total} draft${total > 1 ? 's' : ''} ready`
+    : 'No emails selected — go to step 3 and click the emails you want to send to.';
+
+  document.getElementById('drafts-list').innerHTML = total ? drafts.map((d, i) => `
+    <div class="draft-item" id="draft-card-${i}" style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="padding-top:3px;"><input type="checkbox" id="draft-chk-${i}" checked style="width:16px;height:16px;cursor:pointer;" onchange="updateDraftCheck(${i},this.checked)" /></div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+          <div>
+            <strong style="font-size:14px;">${d.subject}</strong>
+            <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">To: ${d.email}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;">
+            <button class="btn btn-sm" onclick="copyField(${i},'email')" id="copy-email-btn-${i}">Copy email</button>
+            <button class="btn btn-sm" onclick="copyField(${i},'subject')" id="copy-subject-btn-${i}">Copy subject</button>
+            <button class="btn btn-sm" onclick="copyPlainText(${i})" id="copy-btn-${i}">Copy text</button>
+            <span class="badge bg">Ready</span>
+          </div>
+        </div>
+        <div class="draft-body" id="draft-body-${i}">${d.body}</div>
+      </div>
+    </div>`).join('') :
+    `<div class="empty-state">No drafts yet — select emails in step 3 first.</div>`;
+}
+
+function updateDraftCheck(i, checked) {
+  if (drafts[i]) drafts[i].checked = checked;
+  const card = document.getElementById(`draft-card-${i}`);
+  if (card) card.style.opacity = checked ? '1' : '0.45';
+}
+function selectAllDrafts()   { drafts.forEach((d, i) => { d.checked = true;  const el = document.getElementById(`draft-chk-${i}`); if(el) el.checked = true;  }); document.querySelectorAll('.draft-item').forEach(c => c.style.opacity = '1'); }
+function deselectAllDrafts() { drafts.forEach((d, i) => { d.checked = false; const el = document.getElementById(`draft-chk-${i}`); if(el) el.checked = false; }); document.querySelectorAll('.draft-item').forEach(c => c.style.opacity = '0.45'); }
+
+function gmailUrl(d) {
+  return 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(d.email)
+    + '&su=' + encodeURIComponent(d.subject) + '&body=' + encodeURIComponent(d.body);
+}
+
+function openSelectedInGmail() {
+  const selected = drafts.filter(d => d.checked && d.email);
+  if (!selected.length) { document.getElementById('draft-status').textContent = 'No drafts selected.'; return; }
+  if (selected.length > 1 && !confirm(`Open ${selected.length} Gmail compose tabs?`)) return;
+  selected.forEach((d, i) => setTimeout(() => window.open(gmailUrl(d), '_blank'), i * 350));
+  document.getElementById('draft-status').textContent = `✓ Opened ${selected.length} tab${selected.length > 1 ? 's' : ''} in Gmail`;
+}
+
+function copyField(i, field) {
+  const d = drafts[i]; if (!d) return;
+  const text = field === 'email' ? (d.email || '') : d.subject;
+  const btnId = field === 'email' ? `copy-email-btn-${i}` : `copy-subject-btn-${i}`;
+  const label = field === 'email' ? 'Copy email' : 'Copy subject';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = label, 1800); }
+  });
+}
+
+function copyPlainText(i) {
+  const d = drafts[i]; if (!d) return;
+  if (navigator.clipboard && window.ClipboardItem) {
+    const item = new ClipboardItem({ 'text/plain': new Blob([d.body], { type: 'text/plain' }) });
+    navigator.clipboard.write([item]).then(() => {
+      const btn = document.getElementById(`copy-btn-${i}`);
+      if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = 'Copy text', 1800); }
+    });
+  }
+}
+
+// ══ CSV EXPORTS / IMPORTS (unchanged from v7) ═════════════════════════════════
+function fileLabel() {
+  const sel = Array.from(document.getElementById('countries').selectedOptions);
+  return sel.map(o => o.text.replace(/\p{Emoji}/gu,'').trim().toLowerCase().replace(/\s+/g,'_')).slice(0,3).join('_') || 'export';
+}
+function exportUrlsCSV()      { dlCSV([['#','Domain','Country','Keyword','URL'],...allUrls.map((u,i)=>[i+1,u.domain,u.country,u.keyword,u.url])],`tangem_urls_${fileLabel()}.csv`); }
+function exportContactsCSV()  { dlCSV([['#','Domain','Country','SelectedEmail','AllEmails','URL'],...contacts.map((c,i)=>[i+1,c.domain,c.country,[...c.selectedEmails].join('; '),c.emails.join('; '),c.url])],`tangem_contacts_${fileLabel()}.csv`); }
+function exportDraftsCSV()    { dlCSV([['Domain','Email','Subject','Body'],...drafts.map(d=>[d.domain,d.email||'',d.subject,d.body])],`tangem_drafts_${fileLabel()}.csv`); }
+function exportDraftsTXT()    { const txt = drafts.map((d,i)=>[`--- Draft ${i+1} ---`,`To: ${d.email||'NO EMAIL'}`,`Subject: ${d.subject}`,'',d.body,''].join('\n')).join('\n'); dl(new Blob([txt],{type:'text/plain'}),`tangem_drafts_${fileLabel()}.txt`); }
+function dlCSV(rows,name)     { dl(new Blob([rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}),name); }
+function dl(blob,name)        { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click(); }
+
+function parseCSV(line) {
+  const r=[]; let cur='', inQ=false;
+  for (const ch of line) {
+    if (ch==='"') { inQ=!inQ; continue; }
+    if (ch===',' && !inQ) { r.push(cur.trim()); cur=''; continue; }
+    cur+=ch;
+  }
+  r.push(cur.trim()); return r;
+}
+
+function importUrlsCSV(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.trim().split('\n').slice(1);
+    allUrls = [];
+    const domainSet = new Set();
+    document.getElementById('url-tbody').innerHTML = '';
+    for (const line of lines) {
+      const cols = parseCSV(line);
+      if (cols.length < 5) continue;
+      const [, rawDomain, country, keyword, url] = cols;
+      const root = rootDomain(url || ('https://' + rawDomain));
+      if (root && !domainSet.has(root)) {
+        domainSet.add(root);
+        allUrls.push({ url: url || `https://${rawDomain}`, domain: root, country, keyword, _checked: true });
+        addUrlRow(allUrls[allUrls.length-1], allUrls.length);
+      }
+    }
+    document.getElementById('url-empty').style.display = allUrls.length ? 'none' : 'block';
+    document.getElementById('s-unique').textContent = allUrls.length;
+    document.getElementById('search-status').textContent = `Imported ${allUrls.length} root domains`;
+    showPanel('search');
+    log('search-log', `Imported ${allUrls.length} unique root domains from ${file.name}`, 'ok');
+  };
+  reader.readAsText(file);
+}
+
+function importContactsCSV(event) {
+  if (!isPaid()) { guardedPanel('contacts'); return; }
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.trim().split('\n');
+    const header = parseCSV(lines[0]).map(h => h.toLowerCase().trim());
+    contacts = [];
+    document.getElementById('contact-tbody').innerHTML = '';
+    document.getElementById('contact-empty').style.display = 'none';
+    let withEmails = 0, totalEmails = 0;
+    for (const line of lines.slice(1)) {
+      const cols = parseCSV(line); if (!cols.length) continue;
+      let domain, emailsRaw, url, country = '', keyword = '';
+      if (header.includes('allemails')) {
+        domain = cols[1]; country = cols[2];
+        emailsRaw = cols[4] || cols[3]; url = cols[5] || `https://${domain}`;
+      } else {
+        const dIdx = header.findIndex(h => h.includes('domain'));
+        const eIdx = header.findIndex(h => h.includes('email'));
+        const uIdx = header.findIndex(h => h.includes('url'));
+        domain = cols[dIdx >= 0 ? dIdx : 0] || '';
+        emailsRaw = cols[eIdx >= 0 ? eIdx : 1] || '';
+        url = cols[uIdx >= 0 ? uIdx : 2] || `https://${domain}`;
+      }
+      if (!domain) continue;
+      const root = rootDomain(url || `https://${domain}`);
+      const emails = emailsRaw.split(/[;,\s]+/).map(e => e.trim()).filter(e => e.includes('@'));
+      const entry = { domain: root, url, country, keyword, emails, selectedEmails: new Set() };
+      contacts.push(entry);
+      if (emails.length) { withEmails++; totalEmails += emails.length; }
+      addContactRow(entry, contacts.length);
+    }
+    document.getElementById('c-checked').textContent = contacts.length;
+    document.getElementById('c-found').textContent = withEmails;
+    document.getElementById('c-none').textContent = contacts.length - withEmails;
+    document.getElementById('c-total').textContent = totalEmails;
+    log('contact-log', `Imported ${contacts.length} contacts from ${file.name}`, 'ok');
+  };
+  reader.readAsText(file);
+}
+
+// ══ INIT ══════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initCountries();
+  loadUser();
+
+  // Handle Stripe redirect
+  const params = new URLSearchParams(location.search);
+  if (params.get('payment') === 'success') {
+    history.replaceState({}, '', '/');
+    // Re-fetch user to get updated plan
+    setTimeout(loadUser, 1500);
+  }
+
+  // Allow Enter key in auth forms
+  document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('reg-password').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+});
+</script>
+</body>
+</html>
