@@ -1,60 +1,49 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { requireAuth, requirePaid } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
 
-// ── Per-user rate limiter for search (more restrictive than global) ────────────
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,          // 20 searches/min per IP
+  max: 30,
   keyGenerator: (req) => req.user?.sub || req.ip,
   message: { error: 'Search rate limit exceeded. Please wait a minute.' },
-  skip: (req) => false,
 });
 
-// ── Demo limits ───────────────────────────────────────────────────────────────
-const DEMO_LIMITS = {
-  maxCountries: 1,
-  maxKeywords: 1,
-};
+const DEMO_LIMITS = { maxCountries: 1, maxKeywords: 3 };
 
-// ── Core Serper call (server-side, key never leaves this file) ────────────────
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try { req.user = jwt.verify(header.slice(7), process.env.JWT_SECRET); }
+    catch { /* invalid — treat as anon */ }
+  }
+  if (!req.user) req.user = { plan: 'demo', sub: null };
+  next();
+}
+
 async function callSerper(query, gl, hl) {
   const body = { q: query, num: 10 };
   if (gl && /^[a-z]{2}$/.test(gl)) body.gl = gl;
   if (hl && /^[a-z]{2}$/.test(hl)) body.hl = hl;
-
   const res = await fetch('https://google.serper.dev/search', {
     method: 'POST',
-    headers: {
-      'X-API-KEY': process.env.SERPER_API_KEY,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Serper error ${res.status}: ${text}`);
-  }
+  if (!res.ok) throw new Error(`Serper error ${res.status}: ${await res.text()}`);
   return res.json();
 }
 
-// ── POST /api/search ──────────────────────────────────────────────────────────
-// Body: { queries: [{ q, gl, hl, label }] }
-// Returns: { results: [{ q, gl, label, organic: [...] }] }
-router.post('/', requireAuth, searchLimiter, async (req, res) => {
+router.post('/', optionalAuth, searchLimiter, async (req, res) => {
   let { queries } = req.body;
-  if (!Array.isArray(queries) || queries.length === 0) {
+  if (!Array.isArray(queries) || queries.length === 0)
     return res.status(400).json({ error: 'queries must be a non-empty array' });
-  }
 
-  const isPaid = req.user.plan === 'paid';
+  const isPaid = req.user?.plan === 'paid';
 
-  // Enforce demo limits
   if (!isPaid) {
-    // Limit to 1 country × 1 keyword
     const countrySeen = new Set();
     const filtered = [];
     for (const q of queries) {
@@ -67,9 +56,7 @@ router.post('/', requireAuth, searchLimiter, async (req, res) => {
     queries = filtered;
   }
 
-  // Cap absolute number of queries to prevent abuse
-  const maxQueries = isPaid ? 200 : 1;
-  queries = queries.slice(0, maxQueries);
+  queries = queries.slice(0, isPaid ? 200 : DEMO_LIMITS.maxKeywords);
 
   const results = [];
   for (const { q, gl, hl, label } of queries) {
@@ -79,7 +66,6 @@ router.post('/', requireAuth, searchLimiter, async (req, res) => {
     } catch (err) {
       results.push({ q, gl, label, error: err.message });
     }
-    // Small delay between queries to respect Serper's rate limits
     if (queries.length > 1) await sleep(300);
   }
 
@@ -87,5 +73,4 @@ router.post('/', requireAuth, searchLimiter, async (req, res) => {
 });
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
 export default router;
