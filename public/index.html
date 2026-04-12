@@ -9,24 +9,24 @@
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #0f0f13;
-    --surface: #1a1a22;
-    --surface2: #22222e;
-    --border: #2e2e3e;
-    --border2: #3e3e52;
-    --text: #f0f0f8;
-    --muted: #8888a8;
-    --accent: #7c6aff;
-    --accent2: #a855f7;
-    --accent-glow: rgba(124,106,255,0.18);
-    --green: #34d399;
-    --green-bg: rgba(52,211,153,0.1);
-    --amber: #fbbf24;
-    --amber-bg: rgba(251,191,36,0.1);
-    --red: #f87171;
-    --red-bg: rgba(248,113,113,0.1);
-    --blue: #60a5fa;
-    --blue-bg: rgba(96,165,250,0.1);
+    --bg: #f7f7f9;
+    --surface: #ffffff;
+    --surface2: #f0f0f4;
+    --border: #e4e4ec;
+    --border2: #d0d0dc;
+    --text: #111118;
+    --muted: #72728a;
+    --accent: #6351f0;
+    --accent2: #9333ea;
+    --accent-glow: rgba(99,81,240,0.08);
+    --green: #16a34a;
+    --green-bg: rgba(22,163,74,0.08);
+    --amber: #b45309;
+    --amber-bg: rgba(180,83,9,0.08);
+    --red: #dc2626;
+    --red-bg: rgba(220,38,38,0.08);
+    --blue: #2563eb;
+    --blue-bg: rgba(37,99,235,0.08);
     --radius: 12px;
     --radius-sm: 8px;
   }
@@ -35,7 +35,7 @@
   /* ── AUTH MODAL ── */
   #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
   #auth-modal.hidden { display: none; }
-  .auth-box { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 2rem; width: 380px; }
+  .auth-box { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 2rem; width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.12); }
   .auth-logo { font-size: 18px; font-weight: 600; margin-bottom: 0.25rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .auth-sub  { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
   .auth-tabs { display: flex; gap: 0; margin-bottom: 1.25rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
@@ -71,6 +71,8 @@
   .nav-item.active .nav-step { background: var(--accent); color: #fff; }
   .nav-lock { font-size: 10px; margin-left: auto; opacity: 0.35; }
   .nav-footer { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
+  .nav-footer-link { display: block; font-size: 12px; color: var(--muted); text-decoration: none; padding: 3px 0; transition: color 0.15s; }
+  .nav-footer-link:hover { color: var(--accent); }
   .nav-footer-text { font-size: 11px; color: var(--muted); }
 
   main { overflow-y: auto; padding: 2rem 2.5rem; }
@@ -155,11 +157,11 @@
   .stat-value { font-size: 28px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text); }
   .progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s; width: 0%; }
-  .log { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #080810; color: #6666a0; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; max-height: 180px; overflow-y: auto; margin-bottom: 1rem; }
+  .log { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #f0f0f8; color: #72728a; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; max-height: 180px; overflow-y: auto; margin-bottom: 1rem; }
   .log-line { margin-bottom: 2px; }
-  .log-line.ok   { color: var(--green); }
-  .log-line.err  { color: var(--red); }
-  .log-line.warn { color: var(--amber); }
+  .log-line.ok   { color: #16a34a; }
+  .log-line.err  { color: #dc2626; }
+  .log-line.warn { color: #b45309; }
 
   .tbl { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
   .tbl th { text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
@@ -266,7 +268,10 @@
       <span class="nav-lock" id="lock-drafts">🔒</span>
     </div>
     <div class="nav-footer">
-      <div class="nav-footer-text">outreachminer.com</div>
+      <div class="nav-footer-text" style="margin-bottom:8px;font-weight:600;color:var(--text);">OutreachMiner</div>
+      <a href="mailto:roman@outreachminer.com" class="nav-footer-link">📧 roman@outreachminer.com</a>
+      <a href="https://t.me/adresvtelege" target="_blank" class="nav-footer-link">💬 Telegram</a>
+      <a href="https://calendly.com/r-kabanov94/30min" target="_blank" class="nav-footer-link">📅 Book a call</a>
     </div>
   </nav>
 
@@ -275,9 +280,9 @@
     <!-- ══ SETUP ══════════════════════════════════════════════════════════════ -->
     <div class="panel active" id="panel-setup">
 
-      <div class="onboarding">
-        <div class="onboarding-title">Find websites to <span>pitch — automatically</span></div>
-        <div class="onboarding-sub">Search Google across any country and niche, collect relevant sites, find their contact emails, and open personalised drafts in Gmail. Set up takes 2 minutes.</div>
+      <div class="onboarding" style="text-align:center;">
+        <div class="onboarding-title" style="font-size:32px;">Find Websites To <span>Pitch — Automatically</span></div>
+        <div class="onboarding-sub" style="font-size:15px;max-width:580px;margin-left:auto;margin-right:auto;margin-bottom:2rem;">Search Google across any country and niche, collect relevant sites, find their contact emails, and open personalised drafts in Gmail. Takes 2 minutes to set up.</div>
 
         <div class="steps-row">
           <div class="step-card">
@@ -294,7 +299,7 @@
           </div>
           <div class="step-card">
             <div class="step-num">STEP 03</div>
-            <div class="step-icon">🔎</div>
+            <div class="step-icon">👤</div>
             <div class="step-title">Find contacts</div>
             <div class="step-desc">Each site is scanned for real email addresses, not contact forms.</div>
           </div>
