@@ -20,8 +20,28 @@
       "dest": "src/index.js"
     },
     {
+      "src": "/cors-debug",
+      "dest": "src/index.js"
+    },
+    {
       "src": "/",
       "dest": "public/index.html"
+    },
+    {
+      "src": "/pricing.html",
+      "dest": "public/pricing.html"
+    },
+    {
+      "src": "/terms.html",
+      "dest": "public/terms.html"
+    },
+    {
+      "src": "/privacy.html",
+      "dest": "public/privacy.html"
+    },
+    {
+      "src": "/refund.html",
+      "dest": "public/refund.html"
     },
     {
       "src": "/(.*)",
