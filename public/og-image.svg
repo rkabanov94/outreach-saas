@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7f7f9"/>
+      <stop offset="100%" stop-color="#ededf5"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6351f0"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative grid lines -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="#e4e4ec" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#e4e4ec" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="630" stroke="#e4e4ec" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="630" stroke="#e4e4ec" stroke-width="1"/>
+
+  <!-- Accent bar top -->
+  <rect width="1200" height="6" fill="url(#accent)"/>
+
+  <!-- Logo area -->
+  <text x="80" y="120" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#6351f0">⛏ OutreachMiner</text>
+
+  <!-- Main headline -->
+  <text x="80" y="230" font-family="system-ui, sans-serif" font-size="64" font-weight="700" fill="#111118" letter-spacing="-2">Find Websites To</text>
+  <text x="80" y="310" font-family="system-ui, sans-serif" font-size="64" font-weight="700" letter-spacing="-2">
+    <tspan fill="#6351f0">Pitch</tspan>
+    <tspan fill="#111118"> — Automatically</tspan>
+  </text>
+
+  <!-- Subtext -->
+  <text x="80" y="390" font-family="system-ui, sans-serif" font-size="26" fill="#72728a">Search Google · Find emails · Send from Gmail</text>
+
+  <!-- Step pills -->
+  <rect x="80" y="440" width="220" height="48" rx="24" fill="#6351f0" fill-opacity="0.1"/>
+  <text x="190" y="470" font-family="system-ui, sans-serif" font-size="18" fill="#6351f0" text-anchor="middle" font-weight="600">🌍 Pick countries</text>
+
+  <rect x="320" y="440" width="200" height="48" rx="24" fill="#6351f0" fill-opacity="0.1"/>
+  <text x="420" y="470" font-family="system-ui, sans-serif" font-size="18" fill="#6351f0" text-anchor="middle" font-weight="600">🔍 Search Google</text>
+
+  <rect x="540" y="440" width="220" height="48" rx="24" fill="#6351f0" fill-opacity="0.1"/>
+  <text x="650" y="470" font-family="system-ui, sans-serif" font-size="18" fill="#6351f0" text-anchor="middle" font-weight="600">👤 Find contacts</text>
+
+  <rect x="780" y="440" width="230" height="48" rx="24" fill="#6351f0" fill-opacity="0.1"/>
+  <text x="895" y="470" font-family="system-ui, sans-serif" font-size="18" fill="#6351f0" text-anchor="middle" font-weight="600">✉️ Send from Gmail</text>
+
+  <!-- Domain badge -->
+  <text x="1120" y="590" font-family="system-ui, sans-serif" font-size="18" fill="#72728a" text-anchor="end">outreachminer.com</text>
+</svg>
