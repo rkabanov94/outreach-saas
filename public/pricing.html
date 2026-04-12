@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — OutreachMiner</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--bg:#f7f7f9;--surface:#fff;--border:#e4e4ec;--text:#111118;--muted:#72728a;--accent:#6351f0;--accent2:#9333ea;--green:#16a34a;--green-bg:rgba(22,163,74,0.08);}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-size:16px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+  nav a{font-size:13px;color:var(--muted);text-decoration:none;margin-left:1.5rem;}
+  nav a:hover{color:var(--accent);}
+  .hero{text-align:center;padding:4rem 2rem 2rem;}
+  .hero h1{font-size:40px;font-weight:700;letter-spacing:-1px;margin-bottom:0.75rem;}
+  .hero h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .hero p{font-size:16px;color:var(--muted);max-width:480px;margin:0 auto 2.5rem;}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;max-width:800px;margin:0 auto;padding:0 2rem 4rem;}
+  .plan{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2rem;}
+  .plan.featured{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 32px rgba(99,81,240,0.12);}
+  .plan-badge{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.06em;}
+  .plan-name{font-size:20px;font-weight:600;margin-bottom:0.25rem;}
+  .plan-desc{font-size:13px;color:var(--muted);margin-bottom:1.5rem;}
+  .plan-price{font-size:42px;font-weight:700;letter-spacing:-1px;margin-bottom:0.25rem;}
+  .plan-price span{font-size:16px;font-weight:400;color:var(--muted);}
+  .plan-period{font-size:13px;color:var(--muted);margin-bottom:2rem;}
+  .plan-features{list-style:none;margin-bottom:2rem;}
+  .plan-features li{font-size:14px;padding:6px 0;display:flex;align-items:flex-start;gap:8px;}
+  .plan-features li::before{content:"✓";color:var(--green);font-weight:600;flex-shrink:0;margin-top:1px;}
+  .plan-features li.muted{color:var(--muted);}
+  .plan-features li.muted::before{content:"—";color:var(--muted);}
+  .btn{display:block;width:100%;padding:11px 0;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;transition:all 0.15s;border:none;}
+  .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+  .btn-primary:hover{opacity:0.9;}
+  .faq{max-width:640px;margin:0 auto;padding:0 2rem 5rem;}
+  .faq h2{font-size:24px;font-weight:600;margin-bottom:2rem;text-align:center;}
+  .faq-item{border-bottom:1px solid var(--border);padding:1.25rem 0;}
+  .faq-q{font-size:15px;font-weight:500;margin-bottom:0.5rem;}
+  .faq-a{font-size:14px;color:var(--muted);line-height:1.6;}
+  footer{background:var(--surface);border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:12px;color:var(--muted);}
+  footer a{color:var(--muted);text-decoration:none;margin:0 0.75rem;}
+  footer a:hover{color:var(--accent);}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="logo">⛏ OutreachMiner</a>
+  <nav>
+    <a href="/">App</a>
+    <a href="/pricing.html">Pricing</a>
+    <a href="mailto:roman@outreachminer.com">Contact</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <h1>Simple, <span>honest pricing</span></h1>
+  <p>Start free. Upgrade when you need full access to contacts and email drafts.</p>
+</div>
+
+<div class="plans">
+  <!-- Free -->
+  <div class="plan">
+    <div class="plan-name">Demo</div>
+    <div class="plan-desc">Try the tool before you commit</div>
+    <div class="plan-price">$0<span> </span></div>
+    <div class="plan-period">forever free</div>
+    <ul class="plan-features">
+      <li>1 country per search</li>
+      <li>Up to 3 keywords</li>
+      <li>URL discovery (step 2)</li>
+      <li class="muted">Contact email discovery</li>
+      <li class="muted">Gmail draft creation</li>
+      <li class="muted">Unlimited keywords</li>
+      <li class="muted">Multi-country search</li>
+    </ul>
+    <a href="/" class="btn btn-outline">Start for free</a>
+  </div>
+
+  <!-- Pro -->
+  <div class="plan featured">
+    <div class="plan-badge">Most popular</div>
+    <div class="plan-name">Pro</div>
+    <div class="plan-desc">Full access — everything you need for outreach at scale</div>
+    <div class="plan-price">$29<span>/mo</span></div>
+    <div class="plan-period">billed monthly · cancel anytime</div>
+    <ul class="plan-features">
+      <li>Unlimited countries</li>
+      <li>Unlimited keywords</li>
+      <li>URL discovery</li>
+      <li>Contact email discovery</li>
+      <li>Gmail draft creation</li>
+      <li>CSV export at every step</li>
+      <li>Priority support</li>
+    </ul>
+    <a href="/" class="btn btn-primary">Get started →</a>
+  </div>
+</div>
+
+<div class="faq">
+  <h2>Frequently asked questions</h2>
+  <div class="faq-item">
+    <div class="faq-q">How does the free demo work?</div>
+    <div class="faq-a">You can search Google for websites in one country with up to 3 keywords — no account required. Upgrading unlocks contact discovery, draft creation, and removes all limits.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What exactly does the tool do?</div>
+    <div class="faq-a">OutreachMiner searches Google in your target countries and niches, collects relevant websites, scans them for real contact emails, and generates personalised cold email drafts that open directly in Gmail.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I cancel anytime?</div>
+    <div class="faq-a">Yes. You can cancel your subscription at any time from your account settings. You keep access until the end of your billing period.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Do you store my emails or contacts?</div>
+    <div class="faq-a">No. All search results and contacts are processed in your browser session only. We don't store any of the websites or emails you discover.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What payment methods do you accept?</div>
+    <div class="faq-a">We accept all major credit and debit cards via Paddle. Your payment data is handled securely by Paddle — we never see your card details.</div>
+  </div>
+</div>
+
+<footer>
+  © 2025 OutreachMiner ·
+  <a href="/terms.html">Terms of Service</a>
+  <a href="/privacy.html">Privacy Policy</a>
+  <a href="/refund.html">Refund Policy</a>
+  <a href="mailto:roman@outreachminer.com">Contact</a>
+</footer>
+</body>
+</html>
