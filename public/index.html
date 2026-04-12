@@ -3,144 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Outreach Tool — Find contacts for cold email</title>
+<title>OutreachMiner — Find contacts for cold email</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f5f4f0; --surface: #fff; --border: #e0ddd6; --border-strong: #c8c4bb;
-    --text: #1a1917; --muted: #6b6860;
-    --green: #1a6b3c; --green-bg: #e8f5ee;
-    --amber: #7a5200; --amber-bg: #fef3db;
-    --blue: #1a3f6b; --blue-bg: #e8f0fb;
-    --red: #7a1a1a; --red-bg: #fbeaea;
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --border2: #3e3e52;
+    --text: #f0f0f8;
+    --muted: #8888a8;
+    --accent: #7c6aff;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,106,255,0.18);
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.1);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.1);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
   }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
   /* ── AUTH MODAL ── */
-  #auth-modal { position: fixed; inset: 0; background: rgba(26,25,23,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
+  #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
   #auth-modal.hidden { display: none; }
-  .auth-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; width: 360px; }
-  .auth-logo { font-size: 15px; font-weight: 500; margin-bottom: 0.25rem; }
-  .auth-sub  { font-size: 12px; color: var(--muted); margin-bottom: 1.5rem; }
-  .auth-tabs { display: flex; gap: 0; margin-bottom: 1.25rem; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-  .auth-tab  { flex: 1; padding: 7px 12px; font-size: 13px; font-weight: 500; background: var(--bg); color: var(--muted); cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
-  .auth-tab.active { background: var(--text); color: #f5f4f0; }
-  .auth-err { background: var(--red-bg); color: var(--red); border: 1px solid #e8b4b4; border-radius: 6px; padding: 8px 12px; font-size: 12px; margin-bottom: 1rem; display: none; }
+  .auth-box { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 2rem; width: 380px; }
+  .auth-logo { font-size: 18px; font-weight: 600; margin-bottom: 0.25rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .auth-sub  { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 1.25rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .auth-tab  { flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 500; background: transparent; color: var(--muted); cursor: pointer; border: none; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+  .auth-tab.active { background: var(--accent); color: #fff; }
+  .auth-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.3); border-radius: 8px; padding: 8px 12px; font-size: 12px; margin-bottom: 1rem; display: none; }
   .auth-err.visible { display: block; }
-  .auth-close { float: right; background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); margin-top: -4px; }
+  .auth-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); margin-top: -4px; line-height: 1; }
+  .auth-close:hover { color: var(--text); }
 
   /* ── HEADER ── */
-  header { background: var(--text); color: #f5f4f0; padding: 0.85rem 2rem; display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 15px; font-weight: 500; }
-  .header-right { display: flex; align-items: center; gap: 12px; }
-  .plan-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 3px; }
-  .plan-badge.paid { background: rgba(100,200,130,0.25); color: #9fe8b4; }
-  .plan-badge.demo { background: rgba(255,200,80,0.15); color: #f2c94c; }
-  .user-email { font-family: 'DM Mono', monospace; font-size: 11px; opacity: 0.5; }
-  .btn-hdr { font-family: 'DM Sans', sans-serif; font-size: 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: rgba(255,255,255,0.7); padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
-  .btn-hdr:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
-  .btn-hdr.cta { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.35); color: #fff; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header-logo { font-size: 16px; font-weight: 600; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.3px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .plan-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+  .plan-badge.paid { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+  .plan-badge.demo { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+  .user-email { font-size: 12px; color: var(--muted); }
+  .btn-hdr { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; background: transparent; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
+  .btn-hdr:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-hdr.cta { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-hdr.cta:hover { background: var(--accent2); border-color: var(--accent2); }
 
   /* ── LAYOUT ── */
-  .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 50px); }
-  nav { background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 0; position: sticky; top: 0; height: calc(100vh - 50px); overflow-y: auto; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.5rem; cursor: pointer; border-left: 3px solid transparent; font-size: 13px; color: var(--muted); user-select: none; transition: all 0.15s; }
-  .nav-item:hover { background: var(--bg); color: var(--text); }
-  .nav-item.active { border-left-color: var(--text); color: var(--text); font-weight: 500; background: var(--bg); }
-  .nav-step { font-family: 'DM Mono', monospace; font-size: 10px; background: var(--border); padding: 2px 6px; border-radius: 3px; }
-  .nav-item.active .nav-step { background: var(--text); color: #f5f4f0; }
-  .nav-lock { font-size: 10px; margin-left: auto; opacity: 0.4; }
-  main { padding: 2rem; max-width: 940px; }
+  .layout { display: grid; grid-template-columns: 240px 1fr; height: calc(100vh - 56px); overflow: hidden; }
+  nav { background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem 0; overflow-y: auto; display: flex; flex-direction: column; }
+  .nav-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 0 1.5rem; margin-bottom: 6px; margin-top: 1rem; }
+  .nav-section:first-child { margin-top: 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 1.5rem; cursor: pointer; border-left: 2px solid transparent; font-size: 13px; font-weight: 500; color: var(--muted); transition: all 0.15s; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { border-left-color: var(--accent); color: var(--text); background: var(--accent-glow); }
+  .nav-step { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: var(--surface2); padding: 2px 7px; border-radius: 20px; min-width: 28px; text-align: center; }
+  .nav-item.active .nav-step { background: var(--accent); color: #fff; }
+  .nav-lock { font-size: 10px; margin-left: auto; opacity: 0.35; }
+  .nav-footer { margin-top: auto; padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
+  .nav-footer-text { font-size: 11px; color: var(--muted); }
+
+  main { overflow-y: auto; padding: 2rem 2.5rem; }
   .panel { display: none; } .panel.active { display: block; }
 
   /* ── ONBOARDING ── */
-  .onboarding { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; }
-  .onboarding-title { font-size: 22px; font-weight: 400; margin-bottom: 0.5rem; }
-  .onboarding-sub { font-size: 14px; color: var(--muted); margin-bottom: 2rem; max-width: 560px; line-height: 1.7; }
+  .onboarding { margin-bottom: 2rem; }
+  .onboarding-title { font-size: 26px; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
+  .onboarding-title span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .onboarding-sub { font-size: 14px; color: var(--muted); margin-bottom: 1.75rem; max-width: 520px; line-height: 1.7; }
   .steps-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-  .step-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
-  .step-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 6px; }
-  .step-icon { font-size: 20px; margin-bottom: 6px; }
-  .step-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
-  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .demo-note { background: var(--amber-bg); border: 1px solid #e8c97a; border-radius: 8px; padding: 1rem 1.25rem; font-size: 13px; color: var(--amber); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  .demo-note.hidden { display: none; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; transition: border-color 0.2s; }
+  .step-card:hover { border-color: var(--border2); }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); margin-bottom: 8px; font-weight: 500; }
+  .step-icon { font-size: 22px; margin-bottom: 6px; }
+  .step-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+  .step-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
 
-  /* ── FORMS ── */
-  h2 { font-size: 20px; font-weight: 400; margin-bottom: 0.25rem; }
-  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
-  .card-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem; }
-  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 10px; }
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 1rem; }
+  .card-hint { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; font-style: italic; }
+
+  /* ── FORM ELEMENTS ── */
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; margin-top: 12px; font-weight: 500; }
   label:first-child { margin-top: 0; }
-  input[type=text], input[type=password], input[type=email], textarea, select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); outline: none; transition: border-color 0.15s; }
-  input:focus, textarea:focus, select:focus { border-color: var(--border-strong); }
+  input[type=text], input[type=password], input[type=email], textarea, select {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface2); font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text);
+    outline: none; transition: border-color 0.15s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
   textarea { resize: vertical; min-height: 90px; }
+  select { appearance: none; }
+  select option { background: var(--surface2); }
+
+  /* ── COUNTRY TAGS ── */
+  .country-search-wrap { position: relative; margin-bottom: 10px; }
+  .country-search-wrap input { padding-left: 32px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+  .country-tags { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; padding: 4px 0; }
+  .country-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; color: var(--muted); user-select: none;
+  }
+  .country-tag:hover { border-color: var(--border2); color: var(--text); }
+  .country-tag.selected { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+  .country-tag .flag { font-size: 14px; }
+  .country-actions { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .sel-count { font-size: 12px; color: var(--muted); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+
+  /* ── KEYWORD TAGS ── */
+  .kw-tags-wrap { margin-bottom: 8px; }
+  .kw-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .kw-input-row input { flex: 1; }
+  .kw-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kw-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--text);
+  }
+  .kw-tag .kw-remove { cursor: pointer; color: var(--muted); font-size: 14px; line-height: 1; transition: color 0.15s; }
+  .kw-tag .kw-remove:hover { color: var(--red); }
 
   /* ── BUTTONS ── */
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s; }
-  .btn:hover { background: #ebe9e4; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface2); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.15s; }
+  .btn:hover { border-color: var(--border2); background: var(--surface); }
   .btn:active { transform: scale(0.98); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn-primary { background: var(--text); color: #f5f4f0; border-color: var(--text); }
-  .btn-primary:hover { background: #2d2c2a; }
-  .btn-sm { padding: 5px 10px; font-size: 12px; }
-  .btn-amber { background: var(--amber-bg); color: var(--amber); border-color: #e8c97a; }
-  .btn-amber:hover { background: #fde8a4; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-upgrade { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; }
+  .btn-upgrade:hover { opacity: 0.9; }
 
   /* ── STATS / LOG / TABLE ── */
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1rem; }
-  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
-  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .stat-value { font-size: 26px; font-weight: 300; font-family: 'DM Mono', monospace; }
-  .progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 10px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--text); transition: width 0.4s; width: 0%; }
-  .log { font-family: 'DM Mono', monospace; font-size: 11px; background: #1a1917; color: #a8a49e; border-radius: 6px; padding: 0.75rem 1rem; max-height: 200px; overflow-y: auto; margin-bottom: 1rem; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-weight: 600; }
+  .stat-value { font-size: 28px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+  .progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s; width: 0%; }
+  .log { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #080810; color: #6666a0; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; max-height: 180px; overflow-y: auto; margin-bottom: 1rem; }
   .log-line { margin-bottom: 2px; }
-  .log-line.ok   { color: #6fcf97; }
-  .log-line.err  { color: #eb5757; }
-  .log-line.warn { color: #f2c94c; }
+  .log-line.ok   { color: var(--green); }
+  .log-line.err  { color: var(--red); }
+  .log-line.warn { color: var(--amber); }
+
   .tbl { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-  .tbl th { text-align: left; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); }
-  .tbl td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; overflow: hidden; }
+  .tbl th { text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .tbl td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; overflow: hidden; }
   .tbl tr:last-child td { border-bottom: none; }
-  .tbl tr:hover td { background: var(--bg); }
-  .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .tbl tr:hover td { background: var(--surface2); }
+
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
   .bg { background: var(--green-bg); color: var(--green); }
   .ba { background: var(--amber-bg); color: var(--amber); }
   .bb { background: var(--blue-bg); color: var(--blue); }
+
   .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
-  .toolbar-status { font-size: 12px; color: var(--muted); }
+  .toolbar-status { font-size: 12px; color: var(--muted); margin-left: auto; }
   .empty-state { text-align: center; padding: 3rem; color: var(--muted); font-size: 13px; }
-  .tip-green { background: var(--green-bg); border: 1px solid #9fd4b4; border-radius: 6px; padding: 0.75rem 1rem; font-size: 12px; color: var(--green); margin-bottom: 1rem; }
+  .empty-state-icon { font-size: 32px; margin-bottom: 8px; }
+
+  .tip-green { background: var(--green-bg); border: 1px solid rgba(52,211,153,0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 12px; color: var(--green); margin-bottom: 1rem; }
+  .notice { background: var(--accent-glow); border: 1px solid rgba(124,106,255,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .notice.hidden { display: none; }
   .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
-  .email-pill { display: inline-flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 10px; margin: 2px 3px 2px 0; cursor: pointer; transition: all 0.12s; color: var(--text); }
-  .email-pill:hover { border-color: var(--border-strong); }
-  .email-pill.selected { background: var(--text); color: #f5f4f0; border-color: var(--text); }
-  .draft-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 10px; }
-  .draft-body { font-size: 13px; white-space: pre-wrap; line-height: 1.7; background: var(--bg); border-radius: 4px; padding: 10px; margin-top: 8px; }
+
+  .email-pill { display: inline-flex; align-items: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; margin: 2px 3px 2px 0; cursor: pointer; transition: all 0.12s; color: var(--muted); }
+  .email-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .email-pill.selected { background: var(--accent-glow); color: var(--accent); border-color: var(--accent); }
+
+  .draft-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 10px; transition: border-color 0.15s; }
+  .draft-item:hover { border-color: var(--border2); }
+  .draft-body { font-size: 13px; white-space: pre-wrap; line-height: 1.7; background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; margin-top: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 
   /* ── UPGRADE GATE ── */
-  .upgrade-gate { background: var(--surface); border: 1px solid #e8c97a; border-radius: 8px; padding: 2.5rem; text-align: center; margin: 1rem 0; }
-  .upgrade-gate h3 { font-size: 17px; font-weight: 400; margin-bottom: 0.5rem; }
-  .upgrade-gate p { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
+  .upgrade-gate { background: var(--surface); border: 1px solid rgba(124,106,255,0.3); border-radius: var(--radius); padding: 3rem; text-align: center; margin: 1rem 0; }
+  .upgrade-gate-icon { font-size: 40px; margin-bottom: 1rem; }
+  .upgrade-gate h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; }
+  .upgrade-gate p { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; max-width: 360px; margin-left: auto; margin-right: auto; }
+  .page-title { font-size: 22px; font-weight: 600; margin-bottom: 0.25rem; letter-spacing: -0.3px; }
+  .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
 
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
 </head>
 <body>
 
-<!-- ══ AUTH MODAL ════════════════════════════════════════════════════════════ -->
+<!-- ══ AUTH MODAL ═══════════════════════════════════════════════════════════ -->
 <div id="auth-modal" class="hidden">
   <div class="auth-box">
     <button class="auth-close" onclick="closeAuthModal()">×</button>
-    <div class="auth-logo">Outreach Tool</div>
-    <div class="auth-sub" id="auth-modal-sub">Create a free account to save your progress</div>
+    <div class="auth-logo">OutreachMiner</div>
+    <div class="auth-sub" id="auth-modal-sub">Sign in to unlock full access</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
-      <button class="auth-tab" onclick="switchAuthTab('register')">Create account</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
     </div>
     <div class="auth-err" id="auth-err"></div>
     <div id="auth-login-form">
@@ -156,118 +228,135 @@
       <label style="margin-top:10px;">Password</label>
       <input type="password" id="reg-password" placeholder="min 8 characters" />
       <button class="btn btn-primary" style="width:100%;margin-top:14px;justify-content:center;" onclick="doRegister()">Create account →</button>
-      <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center;">Free — no credit card needed</p>
     </div>
   </div>
 </div>
 
 <!-- ══ HEADER ════════════════════════════════════════════════════════════════ -->
 <header>
-  <h1>Outreach Tool</h1>
+  <div class="header-logo">⛏ OutreachMiner</div>
   <div class="header-right">
     <span class="user-email" id="hdr-email"></span>
     <span class="plan-badge demo" id="hdr-plan" style="display:none;"></span>
     <button class="btn-hdr" id="btn-signin" onclick="openAuthModal('login')">Sign in</button>
-    <button class="btn-hdr cta" id="btn-upgrade" style="display:none;" onclick="startCheckout()">Upgrade →</button>
+    <button class="btn-hdr cta" id="btn-upgrade" style="display:none;" onclick="openAuthModal('register')">Upgrade now</button>
     <button class="btn-hdr" id="btn-logout" style="display:none;" onclick="doLogout()">Sign out</button>
   </div>
 </header>
 
 <div class="layout">
+
+  <!-- ══ NAV ══ -->
   <nav>
-    <div class="nav-item active" onclick="showPanel('setup')"><span class="nav-step">01</span> Setup</div>
-    <div class="nav-item" onclick="showPanel('search')"><span class="nav-step">02</span> Search URLs</div>
-    <div class="nav-item" onclick="guardedNav('contacts')"><span class="nav-step">03</span> Find contacts <span class="nav-lock" id="lock-contacts">🔒</span></div>
-    <div class="nav-item" onclick="guardedNav('drafts')"><span class="nav-step">04</span> Drafts <span class="nav-lock" id="lock-drafts">🔒</span></div>
+    <div class="nav-section">Search</div>
+    <div class="nav-item active" onclick="showPanel('setup')">
+      <span class="nav-step">01</span> Setup
+    </div>
+    <div class="nav-item" onclick="showPanel('search')">
+      <span class="nav-step">02</span> Search URLs
+    </div>
+    <div class="nav-section">Outreach</div>
+    <div class="nav-item" onclick="guardedNav('contacts')">
+      <span class="nav-step">03</span> Find contacts
+      <span class="nav-lock" id="lock-contacts">🔒</span>
+    </div>
+    <div class="nav-item" onclick="guardedNav('drafts')">
+      <span class="nav-step">04</span> Drafts
+      <span class="nav-lock" id="lock-drafts">🔒</span>
+    </div>
+    <div class="nav-footer">
+      <div class="nav-footer-text">outreachminer.com</div>
+    </div>
   </nav>
 
   <main>
 
-    <!-- ══ SETUP ══ -->
+    <!-- ══ SETUP ══════════════════════════════════════════════════════════════ -->
     <div class="panel active" id="panel-setup">
 
-      <!-- Onboarding -->
       <div class="onboarding">
-        <div class="onboarding-title">Find websites to pitch — automatically</div>
-        <div class="onboarding-sub">This tool searches Google for websites in your niche, finds their contact emails, and prepares cold email drafts ready to send from Gmail. Set up takes about 2 minutes.</div>
+        <div class="onboarding-title">Find websites to <span>pitch — automatically</span></div>
+        <div class="onboarding-sub">Search Google across any country and niche, collect relevant sites, find their contact emails, and open personalised drafts in Gmail. Set up takes 2 minutes.</div>
 
         <div class="steps-row">
           <div class="step-card">
             <div class="step-num">STEP 01</div>
             <div class="step-icon">🌍</div>
             <div class="step-title">Pick countries</div>
-            <div class="step-desc">Select which markets to target. Each country is searched separately.</div>
+            <div class="step-desc">Select which markets to target. Each is searched separately.</div>
           </div>
           <div class="step-card">
             <div class="step-num">STEP 02</div>
             <div class="step-icon">🔍</div>
             <div class="step-title">Search Google</div>
-            <div class="step-desc">We run your keywords through Google and collect relevant websites — deduplicated by domain.</div>
+            <div class="step-desc">Your keywords run through Google — results deduplicated by domain.</div>
           </div>
           <div class="step-card">
             <div class="step-num">STEP 03</div>
             <div class="step-icon">📧</div>
             <div class="step-title">Find contacts</div>
-            <div class="step-desc">Each website is scanned for real contact emails. No generic forms.</div>
+            <div class="step-desc">Each site is scanned for real email addresses, not contact forms.</div>
           </div>
           <div class="step-card">
             <div class="step-num">STEP 04</div>
             <div class="step-icon">✉️</div>
             <div class="step-title">Send from Gmail</div>
-            <div class="step-desc">Personalised drafts open directly in Gmail compose — one click per email.</div>
+            <div class="step-desc">Personalised drafts open directly in Gmail compose.</div>
           </div>
         </div>
-
-        <div class="demo-note" id="demo-note">
-          <span><strong>Free demo:</strong> 1 country × up to 3 keywords. Steps 3 and 4 require an account upgrade.</span>
-          <button class="btn btn-amber btn-sm" onclick="openAuthModal('register')">Create free account</button>
-        </div>
-        <div class="demo-note hidden" id="paid-note" style="background:var(--green-bg);border-color:#9fd4b4;color:var(--green);">
-          <span>✓ Full access — all steps unlocked.</span>
-        </div>
       </div>
 
-      <h2>Setup</h2>
-      <p class="subtitle">Choose target countries and search keywords below.</p>
-
+      <!-- Countries -->
       <div class="card">
         <div class="card-title">Target countries</div>
-        <input type="text" id="country-search" placeholder="Type to search — e.g. canada, germany, brazil…" oninput="filterCountries()" style="margin-bottom:8px;" />
-        <select id="countries" multiple style="min-height:180px;"></select>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-sm" onclick="selectVisibleCountries()">Select all visible</button>
-          <button class="btn btn-sm" onclick="for(let o of document.getElementById('countries').options)o.selected=false;updateCountSelCount()">Deselect all</button>
-          <span id="country-sel-count" style="font-size:12px;color:var(--muted);align-self:center;"></span>
+        <div class="country-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="country-search" placeholder="Search countries…" oninput="filterCountries()" />
+        </div>
+        <div class="country-tags" id="country-tags"></div>
+        <div class="country-actions">
+          <button class="btn btn-sm" onclick="selectAllVisible()">Select all visible</button>
+          <button class="btn btn-sm" onclick="clearCountries()">Clear</button>
+          <span class="sel-count" id="country-sel-count"></span>
         </div>
       </div>
 
+      <!-- Keywords -->
       <div class="card">
-        <div class="card-title">Keywords <span style="font-weight:400;text-transform:none;font-size:11px;letter-spacing:0;">(one per line — mix niches freely)</span></div>
-        <textarea id="kwEn" style="min-height:120px;">top 10 vpn apps
-best trading platforms 2026
-crypto wallet for beginners</textarea>
-        <p style="font-size:11px;color:var(--muted);margin-top:8px;">Demo: first 3 keywords used. Upgrade for unlimited.</p>
+        <div class="card-title">Keywords</div>
+        <div class="card-hint">Think about how potential partners search for your niche. We've added a few examples to get you started — replace them with your own.</div>
+        <div class="kw-tags-wrap">
+          <div class="kw-tags" id="kw-tags"></div>
+        </div>
+        <div class="kw-input-row">
+          <input type="text" id="kw-input" placeholder="Add a keyword and press Enter…" />
+          <button class="btn btn-sm" onclick="addKw()">Add</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted);">Free demo: up to 3 keywords. Upgrade for unlimited.</p>
       </div>
 
       <button class="btn btn-primary" onclick="showPanel('search');startSearch()">Start searching →</button>
     </div>
 
-    <!-- ══ SEARCH ══ -->
+    <!-- ══ SEARCH ═════════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-search">
-      <h2>Search URLs</h2>
-      <p class="subtitle">Google search results per country, deduplicated by root domain.</p>
-      <div id="demo-search-notice" class="demo-note" style="margin-bottom:1rem;display:none;">
-        Demo: showing results for 1 country × 3 keywords only.
-        <button class="btn btn-amber btn-sm" onclick="openAuthModal('register')">Upgrade for full access</button>
+      <div class="page-title">Search results</div>
+      <div class="page-sub">Google results per country · deduplicated by root domain</div>
+
+      <div class="notice hidden" id="demo-search-notice">
+        Demo mode: 1 country × 3 keywords.
+        <button class="btn btn-upgrade btn-sm" onclick="openAuthModal('register')">Upgrade for full access</button>
       </div>
+
       <div class="stats">
-        <div class="stat"><div class="stat-label">Queries</div><div class="stat-value" id="s-queries">0</div></div>
+        <div class="stat"><div class="stat-label">Queries run</div><div class="stat-value" id="s-queries">0</div></div>
         <div class="stat"><div class="stat-label">Raw URLs</div><div class="stat-value" id="s-raw">0</div></div>
         <div class="stat"><div class="stat-label">Dupes removed</div><div class="stat-value" id="s-dupes">0</div></div>
         <div class="stat"><div class="stat-label">Unique domains</div><div class="stat-value" id="s-unique">0</div></div>
       </div>
       <div class="progress"><div class="progress-fill" id="search-bar"></div></div>
-      <div class="log" id="search-log"><div class="log-line">Ready.</div></div>
+      <div class="log" id="search-log"><div class="log-line">Ready — configure step 1 and click Search.</div></div>
+
       <div class="toolbar">
         <button class="btn btn-sm" onclick="exportUrlsCSV()">Export CSV</button>
         <button class="btn btn-sm" onclick="document.getElementById('urlCsvImport').click()">Import CSV</button>
@@ -276,31 +365,43 @@ crypto wallet for beginners</textarea>
         <button class="btn btn-sm" onclick="setAllUrlChecked(false)">Deselect all</button>
         <span class="toolbar-status" id="search-status"></span>
       </div>
+
       <div class="card" style="padding:0;overflow:hidden;">
         <table class="tbl">
-          <colgroup><col style="width:32px"><col style="width:28px"><col style="width:145px"><col style="width:80px"><col><col style="width:170px"></colgroup>
+          <colgroup>
+            <col style="width:32px">
+            <col style="width:26px">
+            <col style="width:150px">
+            <col style="width:110px">
+            <col style="width:140px">
+            <col>
+          </colgroup>
           <thead><tr>
-            <th><input type="checkbox" id="url-check-all" checked onchange="setAllUrlChecked(this.checked)" style="cursor:pointer;"></th>
+            <th><input type="checkbox" id="url-check-all" checked onchange="setAllUrlChecked(this.checked)" style="cursor:pointer;accent-color:var(--accent);"></th>
             <th>#</th><th>Domain</th><th>Country</th><th>Keyword</th><th>URL</th>
           </tr></thead>
           <tbody id="url-tbody"></tbody>
         </table>
-        <div class="empty-state" id="url-empty">Results appear here as searches run.</div>
+        <div class="empty-state" id="url-empty">
+          <div class="empty-state-icon">🔍</div>
+          Results appear here as searches complete.
+        </div>
       </div>
+
       <div style="margin-bottom:0.75rem;font-size:12px;color:var(--muted);" id="url-sel-status"></div>
       <button class="btn btn-primary" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">Find contacts →</button>
     </div>
 
-    <!-- ══ CONTACTS ══ -->
+    <!-- ══ CONTACTS ═══════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-contacts">
-      <h2>Find contacts</h2>
-      <p class="subtitle">Each selected domain is scanned for real email addresses.</p>
+      <div class="page-title">Find contacts</div>
+      <div class="page-sub">Each selected domain is scanned for real email addresses</div>
 
       <div class="upgrade-gate" id="contacts-gate" style="display:none;">
-        <h3>Upgrade to unlock contact discovery</h3>
-        <p>The free demo includes URL search only. Upgrade to scan websites for emails and build outreach drafts.</p>
-        <button class="btn btn-amber" style="margin-right:8px;" onclick="startCheckout()">Upgrade →</button>
-        <button class="btn" onclick="openAuthModal('register')">Create free account first</button>
+        <div class="upgrade-gate-icon">📧</div>
+        <h3>Unlock contact discovery</h3>
+        <p>The demo includes URL search only. Upgrade to scan websites for emails and build outreach drafts.</p>
+        <button class="btn btn-upgrade" onclick="openAuthModal('register')">Upgrade now →</button>
       </div>
 
       <div id="contacts-content" style="display:none;">
@@ -317,53 +418,56 @@ crypto wallet for beginners</textarea>
           <div class="stat"><div class="stat-label">Total emails</div><div class="stat-value" id="c-total">0</div></div>
         </div>
         <div class="progress"><div class="progress-fill" id="contact-bar"></div></div>
-        <div class="log" id="contact-log"><div class="log-line">Waiting for URLs...</div></div>
+        <div class="log" id="contact-log"><div class="log-line">Waiting for URLs…</div></div>
         <div class="toolbar">
           <button class="btn btn-sm" onclick="exportContactsCSV()">Export CSV</button>
           <span class="toolbar-status" id="contact-status"></span>
         </div>
         <div class="card" style="padding:0;overflow:hidden;">
           <table class="tbl">
-            <colgroup><col style="width:28px"><col style="width:130px"><col style="width:160px"><col><col style="width:70px"></colgroup>
-            <thead><tr><th>#</th><th>Domain</th><th>URL</th><th>Emails — click to select</th><th>Status</th></tr></thead>
+            <colgroup><col style="width:28px"><col style="width:140px"><col><col style="width:70px"></colgroup>
+            <thead><tr><th>#</th><th>Domain</th><th>Emails — click to select for drafts</th><th>Status</th></tr></thead>
             <tbody id="contact-tbody"></tbody>
           </table>
-          <div class="empty-state" id="contact-empty">Results appear here.</div>
+          <div class="empty-state" id="contact-empty">
+            <div class="empty-state-icon">📬</div>Results appear here.
+          </div>
         </div>
         <button class="btn btn-primary" onclick="showPanel('drafts');buildDrafts()">Build drafts →</button>
       </div>
     </div>
 
-    <!-- ══ DRAFTS ══ -->
+    <!-- ══ DRAFTS ═════════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-drafts">
-      <h2>Drafts</h2>
-      <p class="subtitle">One draft per selected email. Open directly in Gmail or export.</p>
+      <div class="page-title">Email drafts</div>
+      <div class="page-sub">One draft per selected email · opens directly in Gmail compose</div>
 
       <div class="upgrade-gate" id="drafts-gate" style="display:none;">
-        <h3>Upgrade to unlock drafts</h3>
-        <p>Create personalised outreach emails and open them directly in Gmail compose.</p>
-        <button class="btn btn-amber" onclick="startCheckout()">Upgrade →</button>
+        <div class="upgrade-gate-icon">✉️</div>
+        <h3>Unlock email drafts</h3>
+        <p>Create personalised outreach emails and open them directly in Gmail.</p>
+        <button class="btn btn-upgrade" onclick="openAuthModal('register')">Upgrade now →</button>
       </div>
 
       <div id="drafts-content" style="display:none;">
         <div class="card">
           <div class="card-title">Message template</div>
-          <label style="margin-top:0;">Subject — <code style="font-size:11px;">{company}</code> = domain name</label>
-          <input type="text" id="tmplSubject" value="Partnership proposal — {company}" />
-          <label>Body — use <code style="font-size:11px;">{company}</code> and <code style="font-size:11px;">{url}</code></label>
+          <label style="margin-top:0;">Subject — <code style="font-size:11px;color:var(--accent);">{company}</code> = domain name</label>
+          <input type="text" id="tmplSubject" value="Partnership idea — {company}" />
+          <label>Body — use <code style="font-size:11px;color:var(--accent);">{company}</code> and <code style="font-size:11px;color:var(--accent);">{url}</code></label>
           <textarea id="tmplBody" style="min-height:150px;">Hi {company} team,
 
-I came across your site at {url} and thought there might be a great fit between our products and your audience.
+I came across your site at {url} and thought there could be a great fit between our products and your audience.
 
 Would you be open to a quick chat about a potential partnership?
 
-Happy to share more details — just reply to this email.</textarea>
+Happy to share more details — just reply here.</textarea>
           <div style="margin-top:10px;">
-            <button class="btn btn-sm" onclick="buildDrafts()">↻ Rebuild drafts</button>
+            <button class="btn btn-sm" onclick="buildDrafts()">↻ Rebuild</button>
           </div>
         </div>
 
-        <div class="tip-green">Select drafts with the checkboxes, then click <strong>Open in Gmail</strong> — each opens as a compose window.</div>
+        <div class="tip-green">Select drafts with checkboxes → click <strong>Open in Gmail</strong> → each opens as a compose window.</div>
         <div class="toolbar">
           <button class="btn btn-primary" onclick="openSelectedInGmail()">Open selected in Gmail ↗</button>
           <button class="btn btn-sm" onclick="selectAllDrafts()">Select all</button>
@@ -389,6 +493,149 @@ let allUrls = [];
 let contacts = [];
 let drafts = [];
 
+// keyword list state
+let keywords = [
+  'top 10 vpn apps',
+  'best trading platforms 2026',
+  'crypto wallet for beginners',
+];
+
+// country selection state
+let selectedCountries = new Set(['ca']);
+
+// ══ COUNTRY DATA — sorted Tier1 → Tier2 → Tier3 ══════════════════════════════
+const ALL_COUNTRIES = [
+  // Tier 1 — English-speaking + major Western
+  ['us','en','🇺🇸','United States'],
+  ['gb','en','🇬🇧','United Kingdom'],
+  ['ca','en','🇨🇦','Canada'],
+  ['au','en','🇦🇺','Australia'],
+  ['de','de','🇩🇪','Germany'],
+  ['fr','fr','🇫🇷','France'],
+  ['nl','nl','🇳🇱','Netherlands'],
+  ['se','sv','🇸🇪','Sweden'],
+  ['no','no','🇳🇴','Norway'],
+  ['ch','de','🇨🇭','Switzerland'],
+  ['ie','en','🇮🇪','Ireland'],
+  ['nz','en','🇳🇿','New Zealand'],
+  ['sg','en','🇸🇬','Singapore'],
+  // Tier 2 — High-traffic markets
+  ['es','es','🇪🇸','Spain'],
+  ['it','it','🇮🇹','Italy'],
+  ['pl','pl','🇵🇱','Poland'],
+  ['pt','pt','🇵🇹','Portugal'],
+  ['be','nl','🇧🇪','Belgium'],
+  ['at','de','🇦🇹','Austria'],
+  ['dk','da','🇩🇰','Denmark'],
+  ['fi','fi','🇫🇮','Finland'],
+  ['in','en','🇮🇳','India'],
+  ['br','pt','🇧🇷','Brazil'],
+  ['mx','es','🇲🇽','Mexico'],
+  ['ar','es','🇦🇷','Argentina'],
+  ['jp','ja','🇯🇵','Japan'],
+  ['kr','ko','🇰🇷','South Korea'],
+  ['ae','ar','🇦🇪','UAE'],
+  ['il','he','🇮🇱','Israel'],
+  ['za','en','🇿🇦','South Africa'],
+  // Tier 3 — Emerging + others
+  ['ru','ru','🇷🇺','Russia'],
+  ['ua','uk','🇺🇦','Ukraine'],
+  ['ge','ka','🇬🇪','Georgia'],
+  ['tr','tr','🇹🇷','Turkey'],
+  ['cz','cs','🇨🇿','Czech Republic'],
+  ['sk','sk','🇸🇰','Slovakia'],
+  ['hu','hu','🇭🇺','Hungary'],
+  ['ro','ro','🇷🇴','Romania'],
+  ['bg','bg','🇧🇬','Bulgaria'],
+  ['hr','hr','🇭🇷','Croatia'],
+  ['rs','sr','🇷🇸','Serbia'],
+  ['gr','el','🇬🇷','Greece'],
+  ['lt','lt','🇱🇹','Lithuania'],
+  ['lv','lv','🇱🇻','Latvia'],
+  ['ee','et','🇪🇪','Estonia'],
+  ['si','sl','🇸🇮','Slovenia'],
+  ['co','es','🇨🇴','Colombia'],
+  ['cl','es','🇨🇱','Chile'],
+  ['sa','ar','🇸🇦','Saudi Arabia'],
+  ['ng','en','🇳🇬','Nigeria'],
+  ['eg','ar','🇪🇬','Egypt'],
+  ['ke','en','🇰🇪','Kenya'],
+  ['id','id','🇮🇩','Indonesia'],
+  ['vn','vi','🇻🇳','Vietnam'],
+  ['th','th','🇹🇭','Thailand'],
+  ['my','ms','🇲🇾','Malaysia'],
+  ['ph','en','🇵🇭','Philippines'],
+];
+
+let filteredCountries = [...ALL_COUNTRIES];
+
+function initCountries() {
+  renderCountryTags();
+  document.getElementById('country-search').addEventListener('input', filterCountries);
+}
+
+function renderCountryTags() {
+  const wrap = document.getElementById('country-tags');
+  wrap.innerHTML = filteredCountries.map(([gl, hl, flag, name]) => `
+    <div class="country-tag ${selectedCountries.has(gl) ? 'selected' : ''}"
+         onclick="toggleCountry('${gl}')"
+         data-gl="${gl}">
+      <span class="flag">${flag}</span>${name}
+    </div>`).join('');
+  updateCountSelCount();
+}
+
+function toggleCountry(gl) {
+  if (selectedCountries.has(gl)) selectedCountries.delete(gl);
+  else selectedCountries.add(gl);
+  renderCountryTags();
+}
+
+function filterCountries() {
+  const q = document.getElementById('country-search').value.toLowerCase().trim();
+  filteredCountries = q
+    ? ALL_COUNTRIES.filter(([,, , name]) => name.toLowerCase().includes(q))
+    : [...ALL_COUNTRIES];
+  renderCountryTags();
+}
+
+function selectAllVisible() {
+  filteredCountries.forEach(([gl]) => selectedCountries.add(gl));
+  renderCountryTags();
+}
+
+function clearCountries() {
+  selectedCountries.clear();
+  renderCountryTags();
+}
+
+function updateCountSelCount() {
+  const el = document.getElementById('country-sel-count');
+  if (el) el.textContent = selectedCountries.size ? `${selectedCountries.size} selected` : '';
+}
+
+// ══ KEYWORDS ══════════════════════════════════════════════════════════════════
+function renderKwTags() {
+  document.getElementById('kw-tags').innerHTML = keywords.map((kw, i) => `
+    <div class="kw-tag">
+      ${kw}
+      <span class="kw-remove" onclick="removeKw(${i})" title="Remove">×</span>
+    </div>`).join('');
+}
+
+function addKw() {
+  const input = document.getElementById('kw-input');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!keywords.includes(val)) { keywords.push(val); renderKwTags(); }
+  input.value = '';
+}
+
+function removeKw(i) {
+  keywords.splice(i, 1);
+  renderKwTags();
+}
+
 // ══ AUTH ══════════════════════════════════════════════════════════════════════
 async function apiFetch(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
@@ -406,33 +653,23 @@ function updateUI() {
   const plan = currentUser?.plan || 'demo';
   const loggedIn = isLoggedIn();
 
-  // Header
   document.getElementById('hdr-email').textContent = currentUser?.email || '';
   const planEl = document.getElementById('hdr-plan');
   planEl.textContent = plan === 'paid' ? '✓ paid' : 'demo';
   planEl.className = `plan-badge ${plan}`;
   planEl.style.display = loggedIn ? '' : 'none';
+
   document.getElementById('btn-signin').style.display  = loggedIn ? 'none' : '';
   document.getElementById('btn-logout').style.display  = loggedIn ? '' : 'none';
   document.getElementById('btn-upgrade').style.display = (loggedIn && !isPaid()) ? '' : 'none';
 
-  // Onboarding notes
-  document.getElementById('demo-note').classList.toggle('hidden', isPaid());
-  document.getElementById('paid-note').classList.toggle('hidden', !isPaid());
-
-  // Nav locks
   ['contacts','drafts'].forEach(id => {
-    const lock = document.getElementById(`lock-${id}`);
-    if (lock) lock.style.display = isPaid() ? 'none' : '';
-  });
-
-  // Panel gates
-  const showGate = !isPaid();
-  ['contacts','drafts'].forEach(id => {
+    const lock    = document.getElementById(`lock-${id}`);
     const gate    = document.getElementById(`${id}-gate`);
     const content = document.getElementById(`${id}-content`);
-    if (gate)    gate.style.display    = showGate ? '' : 'none';
-    if (content) content.style.display = showGate ? 'none' : '';
+    if (lock)    lock.style.display    = isPaid() ? 'none' : '';
+    if (gate)    gate.style.display    = isPaid() ? 'none' : '';
+    if (content) content.style.display = isPaid() ? '' : 'none';
   });
 }
 
@@ -454,16 +691,12 @@ function openAuthModal(tab) {
   switchAuthTab(tab || 'login');
   setAuthError('');
 }
-function closeAuthModal() {
-  document.getElementById('auth-modal').classList.add('hidden');
-}
-
+function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 function setAuthError(msg) {
   const el = document.getElementById('auth-err');
   el.textContent = msg;
   el.classList.toggle('visible', !!msg);
 }
-
 function switchAuthTab(tab) {
   document.querySelectorAll('.auth-tab').forEach((t, i) =>
     t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
@@ -474,7 +707,7 @@ function switchAuthTab(tab) {
 
 async function doLogin() {
   setAuthError('');
-  const email    = document.getElementById('login-email').value.trim();
+  const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   if (!email || !password) return setAuthError('Enter email and password.');
   try {
@@ -482,14 +715,13 @@ async function doLogin() {
     authToken = data.token;
     currentUser = { email, plan: data.plan };
     localStorage.setItem('outreach_token', authToken);
-    updateUI();
-    closeAuthModal();
+    updateUI(); closeAuthModal();
   } catch (e) { setAuthError(e.message); }
 }
 
 async function doRegister() {
   setAuthError('');
-  const email    = document.getElementById('reg-email').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
   if (!email || !password) return setAuthError('Enter email and password.');
   if (password.length < 8) return setAuthError('Password must be at least 8 characters.');
@@ -498,8 +730,7 @@ async function doRegister() {
     authToken = data.token;
     currentUser = { email, plan: data.plan };
     localStorage.setItem('outreach_token', authToken);
-    updateUI();
-    closeAuthModal();
+    updateUI(); closeAuthModal();
   } catch (e) { setAuthError(e.message); }
 }
 
@@ -525,74 +756,10 @@ function showPanel(id) {
   ['setup','search','contacts','drafts'].forEach((p, i) => {
     if (p === id) document.querySelectorAll('.nav-item')[i].classList.add('active');
   });
+  document.querySelector('main').scrollTop = 0;
 }
 
-function guardedNav(id) {
-  showPanel(id); // always navigate — gate shown inside panel
-}
-
-// ══ COUNTRIES ═════════════════════════════════════════════════════════════════
-const ALL_COUNTRIES = [
-  ['es','es','Spanish','🇪🇸 Spain'],['gb','en','English','🇬🇧 United Kingdom'],
-  ['de','de','German','🇩🇪 Germany'],['fr','fr','French','🇫🇷 France'],
-  ['it','it','Italian','🇮🇹 Italy'],['nl','nl','Dutch','🇳🇱 Netherlands'],
-  ['pl','pl','Polish','🇵🇱 Poland'],['pt','pt','Portuguese','🇵🇹 Portugal'],
-  ['ru','ru','Russian','🇷🇺 Russia'],['ua','uk','Ukrainian','🇺🇦 Ukraine'],
-  ['be','nl','Dutch','🇧🇪 Belgium'],['ch','de','German','🇨🇭 Switzerland'],
-  ['at','de','German','🇦🇹 Austria'],['se','sv','Swedish','🇸🇪 Sweden'],
-  ['no','no','Norwegian','🇳🇴 Norway'],['dk','da','Danish','🇩🇰 Denmark'],
-  ['fi','fi','Finnish','🇫🇮 Finland'],['cz','cs','Czech','🇨🇿 Czech Republic'],
-  ['sk','sk','Slovak','🇸🇰 Slovakia'],['hu','hu','Hungarian','🇭🇺 Hungary'],
-  ['ro','ro','Romanian','🇷🇴 Romania'],['bg','bg','Bulgarian','🇧🇬 Bulgaria'],
-  ['hr','hr','Croatian','🇭🇷 Croatia'],['rs','sr','Serbian','🇷🇸 Serbia'],
-  ['gr','el','Greek','🇬🇷 Greece'],['lt','lt','Lithuanian','🇱🇹 Lithuania'],
-  ['lv','lv','Latvian','🇱🇻 Latvia'],['ee','et','Estonian','🇪🇪 Estonia'],
-  ['si','sl','Slovenian','🇸🇮 Slovenia'],['ie','en','English','🇮🇪 Ireland'],
-  ['us','en','English','🇺🇸 United States'],['ca','en','English','🇨🇦 Canada'],
-  ['mx','es','Spanish','🇲🇽 Mexico'],['br','pt','Portuguese','🇧🇷 Brazil'],
-  ['ar','es','Spanish','🇦🇷 Argentina'],['co','es','Spanish','🇨🇴 Colombia'],
-  ['cl','es','Spanish','🇨🇱 Chile'],['in','en','English','🇮🇳 India'],
-  ['au','en','English','🇦🇺 Australia'],['jp','ja','Japanese','🇯🇵 Japan'],
-  ['kr','ko','Korean','🇰🇷 South Korea'],['sg','en','English','🇸🇬 Singapore'],
-  ['ae','ar','Arabic','🇦🇪 UAE'],['sa','ar','Arabic','🇸🇦 Saudi Arabia'],
-  ['il','he','Hebrew','🇮🇱 Israel'],['tr','tr','Turkish','🇹🇷 Turkey'],
-  ['za','en','English','🇿🇦 South Africa'],['ng','en','English','🇳🇬 Nigeria'],
-  ['eg','ar','Arabic','🇪🇬 Egypt'],['ke','en','English','🇰🇪 Kenya'],
-  ['ge','ka','Georgian','🇬🇪 Georgia'],['am','hy','Armenian','🇦🇲 Armenia'],
-];
-
-function initCountries() {
-  const sel = document.getElementById('countries');
-  sel.innerHTML = ALL_COUNTRIES.map(([gl, hl, lang, label]) =>
-    `<option value="${gl}|${hl}|${lang}">${label}</option>`).join('');
-  // Pre-select Canada
-  const canada = [...sel.options].find(o => o.value.startsWith('ca|'));
-  if (canada) canada.selected = true;
-  updateCountSelCount();
-  sel.addEventListener('change', updateCountSelCount);
-}
-
-function filterCountries() {
-  const q = document.getElementById('country-search').value.toLowerCase().trim();
-  const sel = document.getElementById('countries');
-  const selected = new Set([...sel.options].filter(o => o.selected).map(o => o.value));
-  sel.innerHTML = ALL_COUNTRIES
-    .filter(([,,, label]) => !q || label.toLowerCase().includes(q))
-    .map(([gl, hl, lang, label]) =>
-      `<option value="${gl}|${hl}|${lang}" ${selected.has(`${gl}|${hl}|${lang}`) ? 'selected' : ''}>${label}</option>`
-    ).join('');
-  updateCountSelCount();
-}
-
-function selectVisibleCountries() {
-  [...document.getElementById('countries').options].forEach(o => o.selected = true);
-  updateCountSelCount();
-}
-
-function updateCountSelCount() {
-  const sel = [...document.getElementById('countries').options].filter(o => o.selected).length;
-  document.getElementById('country-sel-count').textContent = sel ? `${sel} selected` : '';
-}
+function guardedNav(id) { showPanel(id); }
 
 // ══ SEARCH ════════════════════════════════════════════════════════════════════
 async function startSearch() {
@@ -601,19 +768,17 @@ async function startSearch() {
   document.getElementById('url-tbody').innerHTML = '';
   document.getElementById('url-empty').style.display = 'block';
   document.getElementById('search-bar').style.width = '0%';
-  document.getElementById('demo-search-notice').style.display = 'none';
+  document.getElementById('demo-search-notice').classList.add('hidden');
 
-  const kwEn = document.getElementById('kwEn').value.trim().split('\n').map(k => k.trim()).filter(Boolean);
-  const countries = Array.from(document.getElementById('countries').selectedOptions).map(o => {
-    const [gl, hl, langName] = o.value.split('|');
-    return { gl, hl, label: o.text.replace(/\p{Emoji}/gu, '').trim() };
-  });
-  if (!countries.length) { alert('Select at least one country.'); return; }
+  const kws = keywords.filter(Boolean);
+  if (!kws.length) { alert('Add at least one keyword.'); return; }
+  if (!selectedCountries.size) { alert('Select at least one country.'); return; }
 
+  const countries = ALL_COUNTRIES.filter(([gl]) => selectedCountries.has(gl));
   const queries = [];
-  for (const c of countries)
-    for (const kw of kwEn)
-      queries.push({ q: kw, gl: c.gl, hl: 'en', label: c.label });
+  for (const [gl, hl, flag, name] of countries)
+    for (const kw of kws)
+      queries.push({ q: kw, gl, hl: 'en', label: flag + ' ' + name });
 
   log('search-log', `Sending ${queries.length} quer${queries.length === 1 ? 'y' : 'ies'}…`);
 
@@ -621,7 +786,7 @@ async function startSearch() {
     document.getElementById('search-bar').style.width = '20%';
     const data = await apiFetch('/api/search', { method: 'POST', body: JSON.stringify({ queries }) });
 
-    if (data.demo) document.getElementById('demo-search-notice').style.display = '';
+    if (data.demo) document.getElementById('demo-search-notice').classList.remove('hidden');
 
     const domainSet = new Set();
     let rawCount = 0, queryCount = 0;
@@ -635,7 +800,8 @@ async function startSearch() {
         const root = rootDomain(r.link);
         if (!domainSet.has(root)) {
           domainSet.add(root);
-          const entry = { url: r.link, domain: root, country: result.label, keyword: result.q };
+          const countryInfo = ALL_COUNTRIES.find(([gl]) => gl === result.gl) || [result.gl, '', '', result.label];
+          const entry = { url: r.link, domain: root, country: result.label, countryFlag: countryInfo[2], gl: result.gl, keyword: result.q };
           allUrls.push(entry);
           addUrlRow(entry, allUrls.length);
           document.getElementById('url-empty').style.display = 'none';
@@ -647,10 +813,9 @@ async function startSearch() {
     document.getElementById('s-raw').textContent      = rawCount;
     document.getElementById('s-dupes').textContent    = rawCount - allUrls.length;
     document.getElementById('s-unique').textContent   = allUrls.length;
-    document.getElementById('search-status').textContent = `${allUrls.length} unique domains found`;
+    document.getElementById('search-status').textContent = `${allUrls.length} unique domains`;
     document.getElementById('search-bar').style.width = '100%';
     log('search-log', `Done — ${allUrls.length} unique domains.`, 'ok');
-
   } catch (e) {
     log('search-log', `Error: ${e.message}`, 'err');
     document.getElementById('search-bar').style.width = '0%';
@@ -669,7 +834,7 @@ async function startContactSearch() {
   document.getElementById('contact-empty').style.display = 'block';
 
   const toProcess = allUrls.filter(u => u._checked !== false && !SKIP_DOMAINS.some(s => u.domain.includes(s)));
-  if (!toProcess.length) { log('contact-log', 'No URLs selected. Go back to step 2.', 'err'); return; }
+  if (!toProcess.length) { log('contact-log', 'No URLs selected.', 'err'); return; }
   log('contact-log', `Processing ${toProcess.length} domains…`);
 
   let checked = 0, withEmails = 0, none = 0, totalEmails = 0;
@@ -691,7 +856,7 @@ async function startContactSearch() {
 
     checked++;
     if (emails.length) { withEmails++; totalEmails += emails.length; log('contact-log', `  ✓ ${emails.join(' | ')}`, 'ok'); }
-    else               { none++;                                       log('contact-log', `  — no emails found`, 'warn'); }
+    else               { none++; log('contact-log', `  — no emails`, 'warn'); }
 
     const contactEntry = { ...entry, emails, selectedEmails: new Set() };
     contacts.push(contactEntry);
@@ -732,17 +897,16 @@ function extractCompany(domain) {
 function addUrlRow(entry, i) {
   entry._checked = true;
   const idx = allUrls.length - 1;
-  const shortUrl = entry.url.length > 52 ? entry.url.slice(0, 49) + '…' : entry.url;
   const tr = document.createElement('tr');
   tr.id = `url-row-${idx}`;
   tr.innerHTML = `
-    <td style="text-align:center;"><input type="checkbox" checked style="cursor:pointer;" onchange="toggleUrlCheck(${idx},this.checked)"/></td>
-    <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${i}</td>
-    <td><strong>${entry.domain}</strong></td>
-    <td><span class="badge bb">${entry.country}</span></td>
-    <td style="color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.keyword}</td>
-    <td style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-      <a href="${entry.url}" target="_blank" style="color:var(--blue);" title="${entry.url}">${shortUrl}</a>
+    <td style="text-align:center;"><input type="checkbox" checked style="cursor:pointer;accent-color:var(--accent);" onchange="toggleUrlCheck(${idx},this.checked)"/></td>
+    <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">${i}</td>
+    <td style="font-weight:500;">${entry.domain}</td>
+    <td><span class="badge bb">${entry.countryFlag || ''} ${(entry.country||'').replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*/,'')}</span></td>
+    <td style="color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${entry.keyword}">${entry.keyword}</td>
+    <td style="font-size:11px;font-family:'JetBrains Mono',monospace;">
+      <a href="${entry.url}" target="_blank" style="color:var(--accent);text-decoration:none;" title="${entry.url}">${entry.url}</a>
     </td>`;
   document.getElementById('url-tbody').appendChild(tr);
   updateUrlSelStatus();
@@ -751,7 +915,7 @@ function addUrlRow(entry, i) {
 function toggleUrlCheck(idx, checked) {
   if (allUrls[idx]) allUrls[idx]._checked = checked;
   const row = document.getElementById(`url-row-${idx}`);
-  if (row) row.style.opacity = checked ? '1' : '0.4';
+  if (row) row.style.opacity = checked ? '1' : '0.35';
   updateUrlSelStatus();
   const all  = allUrls.every(u =>  u._checked);
   const none = allUrls.every(u => !u._checked);
@@ -763,7 +927,7 @@ function setAllUrlChecked(checked) {
   allUrls.forEach((u, idx) => {
     u._checked = checked;
     const row = document.getElementById(`url-row-${idx}`);
-    if (row) { row.style.opacity = checked ? '1' : '0.4'; const cb = row.querySelector('input'); if (cb) cb.checked = checked; }
+    if (row) { row.style.opacity = checked ? '1' : '0.35'; const cb = row.querySelector('input'); if (cb) cb.checked = checked; }
   });
   const hdr = document.getElementById('url-check-all');
   if (hdr) { hdr.checked = checked; hdr.indeterminate = false; }
@@ -781,12 +945,10 @@ function addContactRow(c, i) {
   const pills = c.emails.map(e =>
     `<span class="email-pill" onclick="toggleEmail('${c.domain}','${e.replace(/'/g,"\\'")}',this)">${e}</span>`
   ).join('') || '<span style="color:var(--muted);font-size:11px;">—</span>';
-  const shortUrl = c.url.length > 40 ? c.url.slice(0, 37) + '…' : c.url;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">${i}</td>
-    <td><strong style="font-size:12px;">${c.domain}</strong></td>
-    <td style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${c.url}" target="_blank" style="color:var(--blue);">${shortUrl}</a></td>
+    <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">${i}</td>
+    <td style="font-weight:500;font-size:12px;">${c.domain}</td>
     <td style="padding-top:6px;padding-bottom:6px;">${pills}</td>
     <td>${c.emails.length ? `<span class="badge bg">${c.emails.length}</span>` : '<span class="badge ba">—</span>'}</td>`;
   document.getElementById('contact-tbody').appendChild(tr);
@@ -820,12 +982,12 @@ function buildDrafts() {
   document.getElementById('drafts-list').innerHTML = total
     ? drafts.map((d, i) => `
       <div class="draft-item" id="draft-card-${i}" style="display:flex;gap:12px;align-items:flex-start;">
-        <div style="padding-top:3px;"><input type="checkbox" id="draft-chk-${i}" checked style="width:16px;height:16px;cursor:pointer;" onchange="updateDraftCheck(${i},this.checked)"/></div>
+        <div style="padding-top:3px;"><input type="checkbox" id="draft-chk-${i}" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" onchange="updateDraftCheck(${i},this.checked)"/></div>
         <div style="flex:1;min-width:0;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px;flex-wrap:wrap;">
             <div>
-              <strong style="font-size:14px;">${d.subject}</strong>
-              <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">To: ${d.email}</div>
+              <div style="font-weight:600;font-size:14px;">${d.subject}</div>
+              <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;">To: ${d.email}</div>
             </div>
             <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
               <button class="btn btn-sm" onclick="copyField(${i},'email')" id="ce-${i}">Copy email</button>
@@ -837,16 +999,16 @@ function buildDrafts() {
           <div class="draft-body">${d.body}</div>
         </div>
       </div>`).join('')
-    : '<div class="empty-state">No drafts yet — select emails in step 3 first.</div>';
+    : '<div class="empty-state"><div class="empty-state-icon">✉️</div>No drafts yet — select emails in step 3 first.</div>';
 }
 
 function updateDraftCheck(i, checked) {
   if (drafts[i]) drafts[i].checked = checked;
   const card = document.getElementById(`draft-card-${i}`);
-  if (card) card.style.opacity = checked ? '1' : '0.45';
+  if (card) card.style.opacity = checked ? '1' : '0.4';
 }
 function selectAllDrafts()   { drafts.forEach((d, i) => { d.checked = true;  const el = document.getElementById(`draft-chk-${i}`); if (el) el.checked = true;  }); document.querySelectorAll('.draft-item').forEach(c => c.style.opacity = '1'); }
-function deselectAllDrafts() { drafts.forEach((d, i) => { d.checked = false; const el = document.getElementById(`draft-chk-${i}`); if (el) el.checked = false; }); document.querySelectorAll('.draft-item').forEach(c => c.style.opacity = '0.45'); }
+function deselectAllDrafts() { drafts.forEach((d, i) => { d.checked = false; const el = document.getElementById(`draft-chk-${i}`); if (el) el.checked = false; }); document.querySelectorAll('.draft-item').forEach(c => c.style.opacity = '0.4'); }
 
 function gmailUrl(d) {
   return 'https://mail.google.com/mail/?view=cm&to=' + encodeURIComponent(d.email)
@@ -857,9 +1019,8 @@ function openSelectedInGmail() {
   if (!selected.length) { document.getElementById('draft-status').textContent = 'No drafts selected.'; return; }
   if (selected.length > 1 && !confirm(`Open ${selected.length} Gmail tabs?`)) return;
   selected.forEach((d, i) => setTimeout(() => window.open(gmailUrl(d), '_blank'), i * 350));
-  document.getElementById('draft-status').textContent = `✓ Opened ${selected.length} tab${selected.length > 1 ? 's' : ''} in Gmail`;
+  document.getElementById('draft-status').textContent = `✓ Opened ${selected.length} tab${selected.length > 1 ? 's' : ''}`;
 }
-
 function copyField(i, field) {
   const d = drafts[i]; if (!d) return;
   const text  = field === 'email' ? d.email : d.subject;
@@ -881,8 +1042,7 @@ function copyPlainText(i) {
 
 // ══ CSV ════════════════════════════════════════════════════════════════════════
 function fileLabel() {
-  return Array.from(document.getElementById('countries').selectedOptions)
-    .map(o => o.text.replace(/\p{Emoji}/gu,'').trim().toLowerCase().replace(/\s+/g,'_')).slice(0,3).join('_') || 'export';
+  return [...selectedCountries].slice(0,3).join('_') || 'export';
 }
 function exportUrlsCSV()     { dlCSV([['#','Domain','Country','Keyword','URL'],...allUrls.map((u,i)=>[i+1,u.domain,u.country,u.keyword,u.url])],`urls_${fileLabel()}.csv`); }
 function exportContactsCSV() { dlCSV([['#','Domain','Country','SelectedEmail','AllEmails','URL'],...contacts.map((c,i)=>[i+1,c.domain,c.country,[...c.selectedEmails].join('; '),c.emails.join('; '),c.url])],`contacts_${fileLabel()}.csv`); }
@@ -894,8 +1054,8 @@ function dl(blob,name)       { const a=document.createElement('a');a.href=URL.cr
 function parseCSV(line) {
   const r=[]; let cur='',inQ=false;
   for (const ch of line) {
-    if (ch==='"') { inQ=!inQ; continue; }
-    if (ch===',' && !inQ) { r.push(cur.trim()); cur=''; continue; }
+    if (ch==='"'){inQ=!inQ;continue;}
+    if (ch===','&&!inQ){r.push(cur.trim());cur='';continue;}
     cur+=ch;
   }
   r.push(cur.trim()); return r;
@@ -960,6 +1120,7 @@ function importContactsCSV(event) {
 // ══ INIT ══════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   initCountries();
+  renderKwTags();
   loadUser();
 
   const params = new URLSearchParams(location.search);
@@ -970,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   document.getElementById('reg-password').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+  document.getElementById('kw-input').addEventListener('keydown', e => { if (e.key === 'Enter') addKw(); });
   document.getElementById('auth-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAuthModal(); });
 });
 </script>
