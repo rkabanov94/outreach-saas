@@ -9,15 +9,6 @@ import billingRoutes from './routes/billing.js';
 
 const app = express();
 
-// ── Redirect www → non-www ────────────────────────────────────────────────────
-app.use((req, res, next) => {
-  if (req.headers.host && req.headers.host.startsWith('www.')) {
-    const newHost = req.headers.host.slice(4);
-    return res.redirect(301, `https://${newHost}${req.url}`);
-  }
-  next();
-});
-
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   'https://outreachminer.com',
