@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OutreachMiner — Find contacts for cold email</title>
+<meta name="description" content="Search Google across any country and niche, find contact emails, and send cold outreach directly from Gmail. Free to try.">
+<meta property="og:title" content="OutreachMiner — Find contacts for cold email">
+<meta property="og:description" content="Search Google across any country and niche, find contact emails, and send cold outreach directly from Gmail. Free to try.">
+<meta property="og:url" content="https://outreachminer.com">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://outreachminer.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OutreachMiner — Find contacts for cold email">
+<meta name="twitter:description" content="Search Google across any country and niche, find contact emails, and send cold outreach directly from Gmail. Free to try.">
+<meta name="twitter:image" content="https://outreachminer.com/og-image.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏</text></svg>">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -149,8 +159,8 @@
   .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
   .btn-sm { padding: 5px 12px; font-size: 12px; }
-  .btn-upgrade { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; }
-  .btn-upgrade:hover { opacity: 0.9; }
+  .btn-upgrade { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff !important; border: none; }
+  .btn-upgrade:hover { opacity: 0.88; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff !important; }
 
   /* ── STATS / LOG / TABLE ── */
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1rem; }
@@ -917,7 +927,7 @@ function addUrlRow(entry, i) {
     <td style="text-align:center;"><input type="checkbox" checked style="cursor:pointer;accent-color:var(--accent);" onchange="toggleUrlCheck(${idx},this.checked)"/></td>
     <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">${i}</td>
     <td style="font-weight:500;">${entry.domain}</td>
-    <td><span class="badge bb">${entry.countryFlag || ''} ${entry.countryName || entry.country || ''}</span></td>
+    <td><span class="badge bb" title="${entry.countryName || entry.country || ''}">${(entry.gl || '').toUpperCase()}</span></td>
     <td style="color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${entry.keyword}">${entry.keyword}</td>
     <td style="font-size:11px;font-family:'JetBrains Mono',monospace;">
       <a href="${entry.url}" target="_blank" style="color:var(--accent);text-decoration:none;" title="${entry.url}">${entry.url}</a>
