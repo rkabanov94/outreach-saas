@@ -11,7 +11,7 @@ const searchLimiter = rateLimit({
   message: { error: 'Search rate limit exceeded. Please wait a minute.' },
 });
 
-const DEMO_LIMITS = { maxCountries: 1, maxKeywords: 3 };
+const DEMO_LIMITS = { maxCountries: 2, maxKeywords: 3 };
 
 function optionalAuth(req, res, next) {
   const header = req.headers.authorization;
