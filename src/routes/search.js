@@ -56,7 +56,7 @@ router.post('/', optionalAuth, searchLimiter, async (req, res) => {
     queries = filtered;
   }
 
-  queries = queries.slice(0, isPaid ? 200 : DEMO_LIMITS.maxKeywords);
+  queries = queries.slice(0, isPaid ? 200 : DEMO_LIMITS.maxCountries * DEMO_LIMITS.maxKeywords);
 
   const results = [];
   for (const { q, gl, hl, label } of queries) {
