@@ -411,7 +411,10 @@
       </div>
 
       <div style="margin-bottom:0.75rem;font-size:12px;color:var(--muted);" id="url-sel-status"></div>
-      <button class="btn btn-primary" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">Find contacts →</button>
+      <div id="demo-select-hint" class="notice" style="display:none;margin-bottom:0.75rem;">
+        Demo: contact search scans <strong>1 domain</strong> only — deselect all except the one you want, then click Find contacts.
+      </div>
+      <button class="btn btn-primary" onclick="goToContacts()">Find contacts →</button>
     </div>
 
     <!-- ══ CONTACTS ═══════════════════════════════════════════════════════════ -->
@@ -433,6 +436,12 @@
           <span style="font-size:12px;color:var(--muted);">Or upload CSV: Domain, Email(s), URL</span>
         </div>
         <hr class="divider">
+        <!-- Demo hint — shown for non-paid users -->
+        <div id="demo-contact-hint" class="notice" style="display:none;">
+          Select <strong>1 domain</strong> from the list on step 2, then click <strong>Start scanning</strong>.
+          <a href="#" onclick="showPanel('search');return false;" style="color:var(--accent);margin-left:6px;">← Back to step 2</a>
+        </div>
+
         <div class="stats">
           <div class="stat"><div class="stat-label">Checked</div><div class="stat-value" id="c-checked">0</div></div>
           <div class="stat"><div class="stat-label">With emails</div><div class="stat-value" id="c-found">0</div></div>
@@ -451,6 +460,10 @@
             <thead><tr><th>#</th><th>Domain</th><th>Emails — click to select for drafts</th><th>Status</th></tr></thead>
             <tbody id="contact-tbody"></tbody>
           </table>
+          <div style="margin-bottom:1rem;display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-primary btn-sm" onclick="startContactSearch()">▶ Start scanning</button>
+            <span style="font-size:12px;color:var(--muted);" id="contact-sel-info"></span>
+          </div>
           <div class="empty-state" id="contact-empty">
             <div class="empty-state-icon">📬</div>Results appear here.
           </div>
@@ -838,6 +851,9 @@ async function startSearch() {
     document.getElementById('search-status').textContent = `${allUrls.length} unique domains`;
     document.getElementById('search-bar').style.width = '100%';
     log('search-log', `Done — ${allUrls.length} unique domains.`, 'ok');
+    // Show demo hint for non-paid users
+    const hint = document.getElementById('demo-select-hint');
+    if (hint && !isPaid() && allUrls.length > 0) hint.style.display = '';
   } catch (e) {
     log('search-log', `Error: ${e.message}`, 'err');
     document.getElementById('search-bar').style.width = '0%';
@@ -849,15 +865,44 @@ const SKIP_DOMAINS = ['wikipedia.org','youtube.com','reddit.com','play.google.co
   'apps.apple.com','amazon.','quora.com','medium.com','google.com',
   'twitter.com','facebook.com','linkedin.com','instagram.com','apple.com'];
 
+function goToContacts() {
+  if (!allUrls.length) {
+    alert('Run a search first — no URLs found yet.');
+    return;
+  }
+  showPanel('contacts');
+  // For non-paid: deselect all, let user pick 1
+  if (!isPaid()) {
+    setAllUrlChecked(false);
+    renderDemoContactHint();
+  }
+  startContactSearch();
+}
+
+function renderDemoContactHint() {
+  const hint = document.getElementById('demo-contact-hint');
+  if (hint) hint.style.display = '';
+}
+
 async function startContactSearch() {
   contacts = [];
   document.getElementById('contact-log').innerHTML = '';
   document.getElementById('contact-tbody').innerHTML = '';
   document.getElementById('contact-empty').style.display = 'block';
 
-  const toProcess = allUrls.filter(u => u._checked !== false && !SKIP_DOMAINS.some(s => u.domain.includes(s)));
-  if (!toProcess.length) { log('contact-log', 'No URLs selected.', 'err'); return; }
-  log('contact-log', `Processing ${toProcess.length} domains…`);
+  let toProcess = allUrls.filter(u => u._checked !== false && !SKIP_DOMAINS.some(s => u.domain.includes(s)));
+  if (!toProcess.length) {
+    log('contact-log', 'No domains selected. Check at least one domain in the list above, then click Start.', 'warn');
+    return;
+  }
+
+  // Non-paid: enforce 1 domain max
+  if (!isPaid() && toProcess.length > 1) {
+    log('contact-log', `Please select only 1 domain for the demo. Deselect the rest and click Start again.`, 'warn');
+    return;
+  }
+
+  log('contact-log', `Processing ${toProcess.length} domain${toProcess.length > 1 ? 's' : ''}…`);
 
   let checked = 0, withEmails = 0, none = 0, totalEmails = 0;
 
@@ -875,10 +920,6 @@ async function startContactSearch() {
         emails = g.emails || [];
       }
     } catch (e) {
-      if (e.message.includes('Demo limit') || e.message.includes('upgrade')) {
-        log('contact-log', `  Demo limit reached — showing 1 domain. Upgrade for all.`, 'warn');
-        break;
-      }
       log('contact-log', `  Error: ${e.message}`, 'err');
     }
 
@@ -967,6 +1008,20 @@ function updateUrlSelStatus() {
   const total = allUrls.length;
   const el    = document.getElementById('url-sel-status');
   if (el) el.textContent = total ? `${sel} of ${total} domains selected` : '';
+  // Also update the contacts panel info
+  const info = document.getElementById('contact-sel-info');
+  if (info) {
+    if (!isPaid() && sel > 1) {
+      info.textContent = `${sel} selected — demo allows 1. Deselect all but one.`;
+      info.style.color = 'var(--amber)';
+    } else if (sel > 0) {
+      info.textContent = `${sel} domain${sel > 1 ? 's' : ''} selected`;
+      info.style.color = 'var(--muted)';
+    } else {
+      info.textContent = 'No domains selected — go back to step 2';
+      info.style.color = 'var(--red)';
+    }
+  }
 }
 
 function addContactRow(c, i) {
