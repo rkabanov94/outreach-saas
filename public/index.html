@@ -9,11 +9,9 @@
 <meta property="og:description" content="Search Google across any country and niche, find contact emails, and send cold outreach directly from Gmail. Free to try.">
 <meta property="og:url" content="https://outreachminer.com">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://outreachminer.com/og-image.png">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OutreachMiner — Find contacts for cold email">
 <meta name="twitter:description" content="Search Google across any country and niche, find contact emails, and send cold outreach directly from Gmail. Free to try.">
-<meta name="twitter:image" content="https://outreachminer.com/og-image.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛏</text></svg>">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -224,7 +222,7 @@
   <div class="auth-box">
     <button class="auth-close" onclick="closeAuthModal()">×</button>
     <div class="auth-logo">OutreachMiner</div>
-    <div class="auth-sub" id="auth-modal-sub">Sign in to unlock full access</div>
+    <div class="auth-sub" id="auth-modal-sub">Create an account to get full access</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
       <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
@@ -356,7 +354,7 @@
           <input type="text" id="kw-input" placeholder="Add a keyword and press Enter…" />
           <button class="btn btn-sm" onclick="addKw()">Add</button>
         </div>
-        <p style="font-size:11px;color:var(--muted);">Free demo: 2 countries × 3 keywords.</p>
+        <p style="font-size:11px;color:var(--muted);">Free demo: 2 countries · 3 keywords · 1 domain contact scan.</p>
       </div>
 
       <button class="btn btn-primary" onclick="showPanel('search');startSearch()">Start searching →</button>
@@ -368,7 +366,7 @@
       <div class="page-sub">Google results per country · deduplicated by root domain</div>
 
       <div class="notice hidden" id="demo-search-notice">
-        Demo mode: 2 countries × 3 keywords.
+        Demo mode: 2 countries · 3 keywords · 1 contact scan.
         <button class="btn btn-upgrade btn-sm" onclick="openAuthModal('register')">Upgrade for full access</button>
       </div>
 
@@ -419,7 +417,7 @@
     <!-- ══ CONTACTS ═══════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-contacts">
       <div class="page-title">Find contacts</div>
-      <div class="page-sub">Each selected domain is scanned for real email addresses</div>
+      <div class="page-sub">Each selected domain is scanned for real email addresses · demo includes 1 domain</div>
 
       <div class="upgrade-gate" id="contacts-gate" style="display:none;">
         <div class="upgrade-gate-icon">📧</div>
@@ -679,21 +677,21 @@ function updateUI() {
 
   document.getElementById('hdr-email').textContent = currentUser?.email || '';
   const planEl = document.getElementById('hdr-plan');
-  planEl.textContent = plan === 'paid' ? '✓ paid' : 'demo';
-  planEl.className = `plan-badge ${plan}`;
-  planEl.style.display = loggedIn ? '' : 'none';
+  planEl.textContent = '✓ paid';
+  planEl.className = 'plan-badge paid';
+  planEl.style.display = (loggedIn && isPaid()) ? '' : 'none';
 
   document.getElementById('btn-signin').style.display  = loggedIn ? 'none' : '';
   document.getElementById('btn-logout').style.display  = loggedIn ? '' : 'none';
-  document.getElementById('btn-upgrade').style.display = (loggedIn && !isPaid()) ? '' : 'none';
+  document.getElementById('btn-upgrade').style.display = !isPaid() ? '' : 'none';
 
   ['contacts','drafts'].forEach(id => {
     const lock    = document.getElementById(`lock-${id}`);
     const gate    = document.getElementById(`${id}-gate`);
     const content = document.getElementById(`${id}-content`);
     if (lock)    lock.style.display    = isPaid() ? 'none' : '';
-    if (gate)    gate.style.display    = isPaid() ? 'none' : '';
-    if (content) content.style.display = isPaid() ? '' : 'none';
+    if (gate)    gate.style.display    = 'none';   // always hide gate — API enforces limits
+    if (content) content.style.display = '';        // always show content
   });
 }
 
@@ -737,7 +735,7 @@ async function doLogin() {
   try {
     const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     authToken = data.token;
-    currentUser = { email, plan: data.plan };
+    currentUser = { email: data.user?.email || email, plan: data.plan };
     localStorage.setItem('outreach_token', authToken);
     updateUI(); closeAuthModal();
   } catch (e) { setAuthError(e.message); }
@@ -752,7 +750,7 @@ async function doRegister() {
   try {
     const data = await apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) });
     authToken = data.token;
-    currentUser = { email, plan: data.plan };
+    currentUser = { email: data.user?.email || email, plan: data.plan };
     localStorage.setItem('outreach_token', authToken);
     updateUI(); closeAuthModal();
   } catch (e) { setAuthError(e.message); }
@@ -876,7 +874,13 @@ async function startContactSearch() {
         const g = await apiFetch('/api/scrape/google', { method: 'POST', body: JSON.stringify({ domain: entry.domain }) });
         emails = g.emails || [];
       }
-    } catch (e) { log('contact-log', `  Error: ${e.message}`, 'err'); }
+    } catch (e) {
+      if (e.message.includes('Demo limit') || e.message.includes('upgrade')) {
+        log('contact-log', `  Demo limit reached — showing 1 domain. Upgrade for all.`, 'warn');
+        break;
+      }
+      log('contact-log', `  Error: ${e.message}`, 'err');
+    }
 
     checked++;
     if (emails.length) { withEmails++; totalEmails += emails.length; log('contact-log', `  ✓ ${emails.join(' | ')}`, 'ok'); }
