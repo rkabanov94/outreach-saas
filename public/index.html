@@ -438,7 +438,7 @@
         <hr class="divider">
         <!-- Demo hint — shown for non-paid users -->
         <div id="demo-contact-hint" class="notice" style="display:none;">
-          Select <strong>1 domain</strong> from the list on step 2, then click <strong>Start scanning</strong>.
+          Select <strong>1 domain</strong> on step 2, then click <strong>Find contacts →</strong> again.
           <a href="#" onclick="showPanel('search');return false;" style="color:var(--accent);margin-left:6px;">← Back to step 2</a>
         </div>
 
@@ -460,10 +460,6 @@
             <thead><tr><th>#</th><th>Domain</th><th>Emails — click to select for drafts</th><th>Status</th></tr></thead>
             <tbody id="contact-tbody"></tbody>
           </table>
-          <div style="margin-bottom:1rem;display:flex;gap:8px;align-items:center;">
-            <button class="btn btn-primary btn-sm" onclick="startContactSearch()">▶ Start scanning</button>
-            <span style="font-size:12px;color:var(--muted);" id="contact-sel-info"></span>
-          </div>
           <div class="empty-state" id="contact-empty">
             <div class="empty-state-icon">📬</div>Results appear here.
           </div>
@@ -871,11 +867,7 @@ function goToContacts() {
     return;
   }
   showPanel('contacts');
-  // For non-paid: deselect all, let user pick 1
-  if (!isPaid()) {
-    setAllUrlChecked(false);
-    renderDemoContactHint();
-  }
+  if (!isPaid()) renderDemoContactHint();
   startContactSearch();
 }
 
@@ -1008,20 +1000,7 @@ function updateUrlSelStatus() {
   const total = allUrls.length;
   const el    = document.getElementById('url-sel-status');
   if (el) el.textContent = total ? `${sel} of ${total} domains selected` : '';
-  // Also update the contacts panel info
-  const info = document.getElementById('contact-sel-info');
-  if (info) {
-    if (!isPaid() && sel > 1) {
-      info.textContent = `${sel} selected — demo allows 1. Deselect all but one.`;
-      info.style.color = 'var(--amber)';
-    } else if (sel > 0) {
-      info.textContent = `${sel} domain${sel > 1 ? 's' : ''} selected`;
-      info.style.color = 'var(--muted)';
-    } else {
-      info.textContent = 'No domains selected — go back to step 2';
-      info.style.color = 'var(--red)';
-    }
-  }
+
 }
 
 function addContactRow(c, i) {
