@@ -210,6 +210,10 @@
   .page-title { font-size: 22px; font-weight: 600; margin-bottom: 0.25rem; letter-spacing: -0.3px; }
   .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
 
+
+  .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.35); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .btn-loading { opacity:0.85; cursor:not-allowed; pointer-events:none; }
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -414,7 +418,7 @@
       <div id="demo-select-hint" class="notice" style="display:none;margin-bottom:0.75rem;">
         Demo: contact search scans <strong>1 domain</strong> only — deselect all except the one you want, then click Find contacts.
       </div>
-      <button class="btn btn-primary" onclick="goToContacts()">Find contacts →</button>
+      <button class="btn btn-primary" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">Find contacts →</button>
     </div>
 
     <!-- ══ CONTACTS ═══════════════════════════════════════════════════════════ -->
@@ -436,11 +440,6 @@
           <span style="font-size:12px;color:var(--muted);">Or upload CSV: Domain, Email(s), URL</span>
         </div>
         <hr class="divider">
-        <!-- Demo hint — shown for non-paid users -->
-        <div id="demo-contact-hint" class="notice" style="display:none;">
-          Select <strong>1 domain</strong> on step 2, then click <strong>Find contacts →</strong> again.
-          <a href="#" onclick="showPanel('search');return false;" style="color:var(--accent);margin-left:6px;">← Back to step 2</a>
-        </div>
 
         <div class="stats">
           <div class="stat"><div class="stat-label">Checked</div><div class="stat-value" id="c-checked">0</div></div>
@@ -699,8 +698,8 @@ function updateUI() {
     const gate    = document.getElementById(`${id}-gate`);
     const content = document.getElementById(`${id}-content`);
     if (lock)    lock.style.display    = isPaid() ? 'none' : '';
-    if (gate)    gate.style.display    = 'none';   // always hide gate — API enforces limits
-    if (content) content.style.display = '';        // always show content
+    if (gate)    gate.style.display    = isPaid() ? 'none' : '';
+    if (content) content.style.display = isPaid() ? '' : 'none';
   });
 }
 
@@ -741,13 +740,20 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   if (!email || !password) return setAuthError('Enter email and password.');
+  const btn = document.querySelector('#auth-login-form .btn-primary');
+  btn.innerHTML = '<span class="spinner"></span>Signing in…';
+  btn.classList.add('btn-loading');
   try {
     const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
     authToken = data.token;
     currentUser = { email: data.user?.email || email, plan: data.plan };
     localStorage.setItem('outreach_token', authToken);
     updateUI(); closeAuthModal();
-  } catch (e) { setAuthError(e.message); }
+  } catch (e) {
+    setAuthError(e.message);
+    btn.innerHTML = 'Sign in →';
+    btn.classList.remove('btn-loading');
+  }
 }
 
 async function doRegister() {
@@ -756,13 +762,20 @@ async function doRegister() {
   const password = document.getElementById('reg-password').value;
   if (!email || !password) return setAuthError('Enter email and password.');
   if (password.length < 8) return setAuthError('Password must be at least 8 characters.');
+  const btn = document.querySelector('#auth-register-form .btn-primary');
+  btn.innerHTML = '<span class="spinner"></span>Creating account…';
+  btn.classList.add('btn-loading');
   try {
     const data = await apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) });
     authToken = data.token;
     currentUser = { email: data.user?.email || email, plan: data.plan };
     localStorage.setItem('outreach_token', authToken);
     updateUI(); closeAuthModal();
-  } catch (e) { setAuthError(e.message); }
+  } catch (e) {
+    setAuthError(e.message);
+    btn.innerHTML = 'Create account →';
+    btn.classList.remove('btn-loading');
+  }
 }
 
 function doLogout() {
@@ -799,6 +812,7 @@ async function startSearch() {
   document.getElementById('url-tbody').innerHTML = '';
   document.getElementById('url-empty').style.display = 'block';
   document.getElementById('search-bar').style.width = '0%';
+  document.getElementById('search-bar').style.transition = 'width 0.3s ease';
   document.getElementById('demo-search-notice').classList.add('hidden');
 
   const kws = keywords.filter(Boolean);
@@ -813,9 +827,19 @@ async function startSearch() {
 
   log('search-log', `Sending ${queries.length} quer${queries.length === 1 ? 'y' : 'ies'}…`);
 
+  // Animate progress bar while waiting — fills to 85% then waits for real data
+  let fakeProgress = 5;
+  document.getElementById('search-bar').style.width = fakeProgress + '%';
+  const progressInterval = setInterval(() => {
+    if (fakeProgress < 82) {
+      fakeProgress += fakeProgress < 40 ? 4 : fakeProgress < 65 ? 2 : 0.5;
+      document.getElementById('search-bar').style.width = fakeProgress + '%';
+    }
+  }, 180);
+
   try {
-    document.getElementById('search-bar').style.width = '20%';
     const data = await apiFetch('/api/search', { method: 'POST', body: JSON.stringify({ queries }) });
+    clearInterval(progressInterval);
 
     if (data.demo) document.getElementById('demo-search-notice').classList.remove('hidden');
 
@@ -860,21 +884,6 @@ async function startSearch() {
 const SKIP_DOMAINS = ['wikipedia.org','youtube.com','reddit.com','play.google.com',
   'apps.apple.com','amazon.','quora.com','medium.com','google.com',
   'twitter.com','facebook.com','linkedin.com','instagram.com','apple.com'];
-
-function goToContacts() {
-  if (!allUrls.length) {
-    alert('Run a search first — no URLs found yet.');
-    return;
-  }
-  showPanel('contacts');
-  if (!isPaid()) renderDemoContactHint();
-  startContactSearch();
-}
-
-function renderDemoContactHint() {
-  const hint = document.getElementById('demo-contact-hint');
-  if (hint) hint.style.display = '';
-}
 
 async function startContactSearch() {
   contacts = [];
