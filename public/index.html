@@ -369,10 +369,7 @@
       <div class="page-title">Search results</div>
       <div class="page-sub">Google results per country · deduplicated by root domain</div>
 
-      <div class="notice hidden" id="demo-search-notice">
-        Demo mode: 2 countries · 3 keywords · 1 contact scan.
-        <button class="btn btn-upgrade btn-sm" onclick="openAuthModal('register')">Upgrade for full access</button>
-      </div>
+      <div id="demo-search-notice" style="display:none;"></div>
 
       <div class="stats">
         <div class="stat"><div class="stat-label">Queries run</div><div class="stat-value" id="s-queries">0</div></div>
@@ -415,16 +412,13 @@
       </div>
 
       <div style="margin-bottom:0.75rem;font-size:12px;color:var(--muted);" id="url-sel-status"></div>
-      <div id="demo-select-hint" class="notice" style="display:none;margin-bottom:0.75rem;">
-        Demo: contact search scans <strong>1 domain</strong> only — deselect all except the one you want, then click Find contacts.
-      </div>
-      <button class="btn btn-primary" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">Find contacts →</button>
+            <button class="btn btn-primary" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">Find contacts →</button>
     </div>
 
     <!-- ══ CONTACTS ═══════════════════════════════════════════════════════════ -->
     <div class="panel" id="panel-contacts">
       <div class="page-title">Find contacts</div>
-      <div class="page-sub">Each selected domain is scanned for real email addresses · demo includes 1 domain</div>
+      <div class="page-sub">Each selected domain is scanned for real email addresses</div>
 
       <div class="upgrade-gate" id="contacts-gate" style="display:none;">
         <div class="upgrade-gate-icon">📧</div>
