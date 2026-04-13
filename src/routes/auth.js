@@ -40,11 +40,12 @@ router.post('/register', async (req, res) => {
   await supabase.from('profiles').insert({
     id: data.user.id,
     email: data.user.email,
-    plan: 'demo',
+    plan: 'free',
   });
 
-  const token = signToken({ id: data.user.id, email: data.user.email, plan: 'demo' });
-  res.json({ token, plan: 'demo' });
+  const plan = 'free';
+  const token = signToken({ id: data.user.id, email: data.user.email, plan });
+  res.json({ token, plan });
 });
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
@@ -67,7 +68,7 @@ router.post('/login', async (req, res) => {
     .eq('id', data.user.id)
     .single();
 
-  const plan = profile?.plan || 'demo';
+  const plan = profile?.plan || 'free';
   const token = signToken({ id: data.user.id, email: data.user.email, plan });
   res.json({ token, plan });
 });
