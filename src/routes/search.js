@@ -4,20 +4,31 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
+// ── Per-minute limiter ────────────────────────────────────────────────────────
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
   keyGenerator: (req) => req.user?.sub || req.ip,
-  message: { error: 'Search rate limit exceeded. Please wait a minute.' },
+  message: { error: 'Too many requests. Please slow down.' },
+});
+
+// ── Daily limiter — anon users: 1 search/day per IP ──────────────────────────
+const dailyAnonLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 1,
+  keyGenerator: (req) => `anon:${req.ip}`,
+  skip: (req) => req.user?.plan === 'paid',
+  message: { error: 'Daily demo limit reached. Sign up to get full access.' },
 });
 
 const DEMO_LIMITS = { maxCountries: 2, maxKeywords: 3 };
 
+// ── Optional auth ─────────────────────────────────────────────────────────────
 function optionalAuth(req, res, next) {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) {
     try { req.user = jwt.verify(header.slice(7), process.env.JWT_SECRET); }
-    catch { /* invalid — treat as anon */ }
+    catch {}
   }
   if (!req.user) req.user = { plan: 'demo', sub: null };
   next();
@@ -36,7 +47,7 @@ async function callSerper(query, gl, hl) {
   return res.json();
 }
 
-router.post('/', optionalAuth, searchLimiter, async (req, res) => {
+router.post('/', optionalAuth, dailyAnonLimiter, searchLimiter, async (req, res) => {
   let { queries } = req.body;
   if (!Array.isArray(queries) || queries.length === 0)
     return res.status(400).json({ error: 'queries must be a non-empty array' });
