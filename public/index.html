@@ -283,7 +283,7 @@
     </div>
     <div class="nav-footer">
       <div class="nav-footer-text" style="margin-bottom:8px;">Contacts</div>
-      <a href="mailto:roman@outreachminer.com" class="nav-footer-link">✉️ roman@outreachminer.com</a>
+      <a href="mailto:appstoremarketer@gmail.com" class="nav-footer-link">✉️ appstoremarketer@gmail.com</a>
       <a href="https://t.me/adresvtelege" target="_blank" class="nav-footer-link">💬 Telegram</a>
       <a href="https://calendly.com/r-kabanov94/30min" target="_blank" class="nav-footer-link">📅 Book a call</a>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;">
@@ -1109,10 +1109,10 @@ function copyPlainText(i) {
 function fileLabel() {
   return [...selectedCountries].slice(0,3).join('_') || 'export';
 }
-function exportUrlsCSV()     { dlCSV([['#','Domain','Country','Keyword','URL'],...allUrls.map((u,i)=>[i+1,u.domain,u.country,u.keyword,u.url])],`urls_${fileLabel()}.csv`); }
-function exportContactsCSV() { dlCSV([['#','Domain','Country','SelectedEmail','AllEmails','URL'],...contacts.map((c,i)=>[i+1,c.domain,c.country,[...c.selectedEmails].join('; '),c.emails.join('; '),c.url])],`contacts_${fileLabel()}.csv`); }
-function exportDraftsCSV()   { dlCSV([['Domain','Email','Subject','Body'],...drafts.map(d=>[d.domain,d.email,d.subject,d.body])],`drafts_${fileLabel()}.csv`); }
-function exportDraftsTXT()   { dl(new Blob([drafts.map((d,i)=>`--- Draft ${i+1} ---\nTo: ${d.email}\nSubject: ${d.subject}\n\n${d.body}\n`).join('\n')],{type:'text/plain'}),`drafts_${fileLabel()}.txt`); }
+function exportUrlsCSV()     { dlCSV([['#','Domain','Country','Keyword','URL'],...allUrls.map((u,i)=>[i+1,u.domain,u.country,u.keyword,u.url])],`outreachminer_urls_${fileLabel()}.csv`); }
+function exportContactsCSV() { dlCSV([['#','Domain','Country','SelectedEmail','AllEmails','URL'],...contacts.map((c,i)=>[i+1,c.domain,c.country,[...c.selectedEmails].join('; '),c.emails.join('; '),c.url])],`outreachminer_contacts_${fileLabel()}.csv`); }
+function exportDraftsCSV()   { dlCSV([['Domain','Email','Subject','Body'],...drafts.map(d=>[d.domain,d.email,d.subject,d.body])],`outreachminer_drafts_${fileLabel()}.csv`); }
+function exportDraftsTXT()   { dl(new Blob([drafts.map((d,i)=>`--- Draft ${i+1} ---\nTo: ${d.email}\nSubject: ${d.subject}\n\n${d.body}\n`).join('\n')],{type:'text/plain'}),`outreachminer_drafts_${fileLabel()}.txt`); }
 function dlCSV(rows,name)    { dl(new Blob([rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}),name); }
 function dl(blob,name)       { const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click(); }
 
