@@ -97,11 +97,19 @@ async function scrapeEmails(domain) {
   const pages = [
     `https://${domain}/contact`,
     `https://${domain}/contact-us`,
+    `https://${domain}/contacts`,
+    `https://${domain}/company/contact`,
+    `https://${domain}/en/contact`,
     `https://${domain}/about`,
     `https://${domain}/about-us`,
+    `https://${domain}/about/contact`,
     `https://${domain}/team`,
+    `https://${domain}/our-team`,
     `https://${domain}/advertise`,
     `https://${domain}/advertise-with-us`,
+    `https://${domain}/advertising`,
+    `https://${domain}/media`,
+    `https://${domain}/press`,
     `https://${domain}/terms`,
     `https://${domain}/terms-of-service`,
     `https://${domain}/terms-and-conditions`,
@@ -123,9 +131,8 @@ async function scrapeEmails(domain) {
     const found = cleanEmails(decoded);
     found.forEach(e => emailSet.add(e));
 
-    // If we found good emails on contact/about pages, stop early
-    const earlyStopPages = ['/contact', '/contact-us', '/about', '/about-us', '/team'];
-    if (emailSet.size > 0 && earlyStopPages.some(p => url.endsWith(p))) break;
+    // Stop as soon as we find emails — pages are ordered by likelihood
+    if (emailSet.size > 0) break;
   }
 
   return [...emailSet];
