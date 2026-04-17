@@ -21,6 +21,15 @@ const dailyAnonLimiter = rateLimit({
   message: { error: 'Daily demo limit reached. Sign up to get full access.' },
 });
 
+// ── Daily limiter — paid users: 500 searches/day (fair use cap) ───────────────
+const dailyPaidLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 500,
+  keyGenerator: (req) => `paid:${req.user?.sub || req.ip}`,
+  skip: (req) => req.user?.plan !== 'paid',
+  message: { error: 'Daily search limit reached. Resets at midnight UTC. Contact us if you need more.' },
+});
+
 const DEMO_LIMITS = { maxCountries: 2, maxKeywords: 3 };
 
 // ── Optional auth ─────────────────────────────────────────────────────────────
@@ -47,7 +56,7 @@ async function callSerper(query, gl, hl) {
   return res.json();
 }
 
-router.post('/', optionalAuth, dailyAnonLimiter, searchLimiter, async (req, res) => {
+router.post('/', optionalAuth, dailyAnonLimiter, dailyPaidLimiter, searchLimiter, async (req, res) => {
   let { queries } = req.body;
   if (!Array.isArray(queries) || queries.length === 0)
     return res.status(400).json({ error: 'queries must be a non-empty array' });
