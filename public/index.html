@@ -355,10 +355,10 @@
           <div class="kw-tags" id="kw-tags"></div>
         </div>
         <div class="kw-input-row">
-          <input type="text" id="kw-input" placeholder="Add a keyword and press Enter…" />
+          <input type="text" id="kw-input" placeholder="Add keywords — one per line, or paste a list…" onpaste="handleKwPaste(event)" />
           <button class="btn btn-sm" onclick="addKw()">Add</button>
         </div>
-        <p style="font-size:11px;color:var(--muted);">Free demo: 2 countries · 3 keywords · 1 domain contact scan.</p>
+        <p style="font-size:11px;color:var(--muted);">Free demo: 2 countries · 3 keywords.</p>
       </div>
 
       <button class="btn btn-primary" onclick="showPanel('search');startSearch()">Start searching →</button>
@@ -647,12 +647,26 @@ function renderKwTags() {
     </div>`).join('');
 }
 
-function addKw() {
+function addKw(raw) {
   const input = document.getElementById('kw-input');
-  const val = input.value.trim();
-  if (!val) return;
-  if (!keywords.includes(val)) { keywords.push(val); renderKwTags(); }
+  const text = raw !== undefined ? raw : input.value;
+  // Split by newline or comma
+  const parts = text.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  let added = 0;
+  for (const kw of parts) {
+    if (!keywords.includes(kw)) { keywords.push(kw); added++; }
+  }
+  if (added) renderKwTags();
   input.value = '';
+}
+
+// Handle paste — auto-split multi-line paste into tags
+function handleKwPaste(e) {
+  const pasted = (e.clipboardData || window.clipboardData).getData('text');
+  if (pasted.includes('\n') || pasted.includes(',')) {
+    e.preventDefault();
+    addKw(pasted);
+  }
 }
 
 function removeKw(i) {
@@ -888,12 +902,6 @@ async function startContactSearch() {
   let toProcess = allUrls.filter(u => u._checked !== false && !SKIP_DOMAINS.some(s => u.domain.includes(s)));
   if (!toProcess.length) {
     log('contact-log', 'No domains selected. Check at least one domain in the list above, then click Start.', 'warn');
-    return;
-  }
-
-  // Non-paid: enforce 1 domain max
-  if (!isPaid() && toProcess.length > 1) {
-    log('contact-log', `Please select only 1 domain for the demo. Deselect the rest and click Start again.`, 'warn');
     return;
   }
 
