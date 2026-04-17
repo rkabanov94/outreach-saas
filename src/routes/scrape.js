@@ -53,9 +53,43 @@ function cleanEmails(text) {
   )];
 }
 
-// Decode common email obfuscation techniques
+// Decode common email obfuscation techniques + extract from JS data attributes
 function decodeObfuscated(html) {
-  return html
+  let text = html;
+
+  // 1. Extract emails from data-email + data-domain attributes
+  // Pattern: data-email="user" data-domain="example.com"
+  text = text.replace(/data-email=["']([^"']+)["'][^>]*data-domain=["']([^"']+)["']/gi,
+    (_, user, domain) => ` ${user}@${domain} `);
+  text = text.replace(/data-domain=["']([^"']+)["'][^>]*data-email=["']([^"']+)["']/gi,
+    (_, domain, user) => ` ${user}@${domain} `);
+
+  // 2. Extract from data-cfemail (Cloudflare email protection)
+  const cfMatches = text.matchAll(/data-cfemail=["']([a-f0-9]+)["']/gi);
+  for (const m of cfMatches) {
+    try {
+      const encoded = m[1];
+      const key = parseInt(encoded.substr(0, 2), 16);
+      let decoded = '';
+      for (let i = 2; i < encoded.length; i += 2) {
+        decoded += String.fromCharCode(parseInt(encoded.substr(i, 2), 16) ^ key);
+      }
+      text += ' ' + decoded + ' ';
+    } catch {}
+  }
+
+  // 3. Extract from mailto: links
+  text = text.replace(/mailto:([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/gi,
+    (_, email) => ` ${email} `);
+
+  // 4. Extract JSON-LD / structured data emails
+  const jsonMatches = text.matchAll(/"email"\s*:\s*"([^"]+)"/gi);
+  for (const m of jsonMatches) {
+    if (m[1].includes('@')) text += ' ' + m[1] + ' ';
+  }
+
+  // 5. Standard obfuscation decoding
+  text = text
     .replace(/&amp;/g, '&')
     .replace(/&#64;/gi, '@')
     .replace(/&#x40;/gi, '@')
@@ -65,10 +99,10 @@ function decodeObfuscated(html) {
     .replace(/\[dot\]/gi, '.')
     .replace(/\s*\(dot\)\s*/gi, '.')
     .replace(/&#46;/gi, '.')
-    // Remove HTML tags but keep text content
     .replace(/<[^>]+>/g, ' ')
-    // Collapse whitespace
     .replace(/\s+/g, ' ');
+
+  return text;
 }
 
 async function fetchPage(url, timeout = 8000) {
