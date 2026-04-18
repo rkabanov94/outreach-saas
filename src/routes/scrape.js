@@ -191,22 +191,52 @@ router.post('/google', optionalAuth, dailyAnonScrapeLimiter, scrapeLimiter, asyn
   if (!domain) return res.status(400).json({ error: 'domain is required' });
 
   try {
-    const response = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: `"${domain}" email contact`, num: 10 }),
-    });
-    if (!response.ok) return res.json({ emails: [] });
+    // Run two queries: one for email, one for contact page
+    const queries = [
+      `"${domain}" email contact`,
+      `site:${domain} contact email`,
+    ];
 
-    const data = await response.json();
-    let text = '';
-    if (data.answerBox) text += JSON.stringify(data.answerBox) + ' ';
-    if (data.knowledgeGraph) text += JSON.stringify(data.knowledgeGraph) + ' ';
-    for (const r of (data.organic || [])) {
-      text += (r.snippet || '') + ' ' + (r.title || '') + ' ';
+    const allEmails = new Set();
+
+    for (const q of queries) {
+      const response = await fetch('https://google.serper.dev/search', {
+        method: 'POST',
+        headers: { 'X-API-KEY': process.env.SERPER_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q, num: 10 }),
+      });
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      let text = '';
+
+      // AI Overview / answer box — often contains email directly
+      if (data.answerBox) text += JSON.stringify(data.answerBox) + ' ';
+      if (data.knowledgeGraph) text += JSON.stringify(data.knowledgeGraph) + ' ';
+
+      // All organic snippets
+      for (const r of (data.organic || [])) {
+        text += (r.snippet || '') + ' ' + (r.title || '') + ' ';
+        // Also check sitelinks
+        for (const s of (r.sitelinks || [])) {
+          text += (s.snippet || '') + ' ';
+        }
+      }
+
+      // People also ask snippets
+      for (const r of (data.peopleAlsoAsk || [])) {
+        text += (r.snippet || '') + ' ' + (r.answer || '') + ' ';
+      }
+
+      cleanEmails(decodeObfuscated(text)).forEach(e => allEmails.add(e));
+
+      // If we found emails already, no need for second query
+      if (allEmails.size > 0) break;
+
+      await new Promise(r => setTimeout(r, 200));
     }
 
-    res.json({ emails: cleanEmails(decodeObfuscated(text)) });
+    res.json({ emails: [...allEmails] });
   } catch {
     res.json({ emails: [] });
   }
