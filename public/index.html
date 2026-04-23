@@ -353,15 +353,25 @@
       <!-- Keywords -->
       <div class="card">
         <div class="card-title">Keywords</div>
-        <div class="card-hint">Think about how potential partners search for your niche. We've added a few examples to get you started — replace them with your own.</div>
+        <div class="card-hint">Think about how people search for your niche. Click a suggestion or type your own.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+          <span class="kw-suggestion" onclick="addSuggestion(this,'top 10 vpn apps')">top 10 vpn apps</span>
+          <span class="kw-suggestion" onclick="addSuggestion(this,'best trading platforms 2026')">best trading platforms 2026</span>
+          <span class="kw-suggestion" onclick="addSuggestion(this,'crypto wallet for beginners')">crypto wallet for beginners</span>
+          <span class="kw-suggestion" onclick="addSuggestion(this,'best password manager')">best password manager</span>
+          <span class="kw-suggestion" onclick="addSuggestion(this,'top affiliate programs')">top affiliate programs</span>
+          <span class="kw-suggestion" onclick="addSuggestion(this,'best project management tools')">best project management tools</span>
+        </div>
         <div class="kw-tags-wrap">
           <div class="kw-tags" id="kw-tags"></div>
         </div>
         <div class="kw-input-row">
-          <input type="text" id="kw-input" placeholder="Add keywords — one per line, or paste a list…" onpaste="handleKwPaste(event)" />
+          <input type="text" id="kw-input" placeholder="Type a keyword and press Enter, or paste a list…"
+            onpaste="handleKwPaste(event)"
+            onblur="flushKwInput()" />
           <button class="btn btn-sm" onclick="addKw()">Add</button>
         </div>
-        <p style="font-size:11px;color:var(--muted);">Free demo: 2 countries · 3 keywords.</p>
+        <p style="font-size:11px;color:var(--muted);">Free demo: up to 3 keywords.</p>
       </div>
 
       <button class="btn btn-primary" onclick="showPanel('search');startSearch()">Start searching →</button>
@@ -658,15 +668,12 @@ function addKw(raw) {
   input.value = '';
 }
 
-function addSuggestion(kw) {
+function addSuggestion(el, kw) {
   if (!keywords.includes(kw)) {
     keywords.push(kw);
     renderKwTags();
   }
-  // Mark suggestion as used
-  document.querySelectorAll('.kw-suggestion').forEach(el => {
-    if (el.textContent.trim() === kw) el.classList.add('used');
-  });
+  el.classList.add('used');
 }
 
 // Auto-add anything typed but not yet added when user starts search
