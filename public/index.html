@@ -317,8 +317,8 @@
           <div class="step-card">
             <div class="step-num">STEP 02</div>
             <div class="step-icon">🔍</div>
-            <div class="step-title">Search Google</div>
-            <div class="step-desc">Your keywords run through Google — results deduplicated by domain.</div>
+            <div class="step-title">Search</div>
+            <div class="step-desc">Your keywords run through Google search — results deduplicated by domain.</div>
           </div>
           <div class="step-card">
             <div class="step-num">STEP 03</div>
@@ -355,12 +355,12 @@
         <div class="card-title">Keywords</div>
         <div class="card-hint">Think about how people search for your niche. Click a suggestion or type your own.</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-          <span class="kw-suggestion" onclick="addSuggestion(this,'top 10 vpn apps')">top 10 vpn apps</span>
-          <span class="kw-suggestion" onclick="addSuggestion(this,'best trading platforms 2026')">best trading platforms 2026</span>
-          <span class="kw-suggestion" onclick="addSuggestion(this,'crypto wallet for beginners')">crypto wallet for beginners</span>
-          <span class="kw-suggestion" onclick="addSuggestion(this,'best password manager')">best password manager</span>
-          <span class="kw-suggestion" onclick="addSuggestion(this,'top affiliate programs')">top affiliate programs</span>
-          <span class="kw-suggestion" onclick="addSuggestion(this,'best project management tools')">best project management tools</span>
+          <span class="kw-suggestion" data-kw="top 10 vpn apps" onclick="addSuggestion(this,'top 10 vpn apps')">top 10 vpn apps</span>
+          <span class="kw-suggestion" data-kw="best trading platforms 2026" onclick="addSuggestion(this,'best trading platforms 2026')">best trading platforms 2026</span>
+          <span class="kw-suggestion" data-kw="crypto wallet for beginners" onclick="addSuggestion(this,'crypto wallet for beginners')">crypto wallet for beginners</span>
+          <span class="kw-suggestion" data-kw="best password manager" onclick="addSuggestion(this,'best password manager')">best password manager</span>
+          <span class="kw-suggestion" data-kw="top affiliate programs" onclick="addSuggestion(this,'top affiliate programs')">top affiliate programs</span>
+          <span class="kw-suggestion" data-kw="best project management tools" onclick="addSuggestion(this,'best project management tools')">best project management tools</span>
         </div>
         <div class="kw-tags-wrap">
           <div class="kw-tags" id="kw-tags"></div>
@@ -669,11 +669,22 @@ function addKw(raw) {
 }
 
 function addSuggestion(el, kw) {
-  if (!keywords.includes(kw)) {
+  if (keywords.includes(kw)) {
+    // Already added — remove it (toggle off)
+    keywords = keywords.filter(k => k !== kw);
+  } else {
     keywords.push(kw);
-    renderKwTags();
   }
-  el.classList.add('used');
+  renderKwTags();
+  syncSuggestions();
+}
+
+// Keep suggestion visual state in sync with keywords array
+function syncSuggestions() {
+  document.querySelectorAll('.kw-suggestion').forEach(el => {
+    const kw = el.getAttribute('data-kw');
+    el.classList.toggle('used', keywords.includes(kw));
+  });
 }
 
 // Auto-add anything typed but not yet added when user starts search
@@ -694,6 +705,7 @@ function handleKwPaste(e) {
 function removeKw(i) {
   keywords.splice(i, 1);
   renderKwTags();
+  syncSuggestions();
 }
 
 // ══ AUTH ══════════════════════════════════════════════════════════════════════
