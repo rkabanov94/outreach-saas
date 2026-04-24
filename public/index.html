@@ -288,9 +288,7 @@
     .draft-item > div:last-child > div:first-child { flex-direction: column; }
 
     /* Onboarding title smaller */
-    .onboarding-title { font-size: 26px !important; }
-    .title-break { display: inline; }
-    .onboarding-title { display: block; }
+    .onboarding-title { font-size: 24px !important; word-break: normal; overflow-wrap: break-word; }
     .onboarding-sub { font-size: 13px !important; }
   }
 
@@ -384,7 +382,7 @@
     <div class="panel active" id="panel-setup">
 
       <div class="onboarding" style="text-align:center;">
-        <div class="onboarding-title" style="font-size:32px;"><span class="title-break">Find Websites To </span><span>Pitch — Automatically</span></div>
+        <div class="onboarding-title" style="font-size:32px;">Find Websites To <span>Pitch — Automatically</span></div>
         <div class="onboarding-sub" style="font-size:15px;max-width:580px;margin-left:auto;margin-right:auto;margin-bottom:2rem;">Search Google across any country and niche, collect relevant sites, find their contact emails, and open personalised drafts in Gmail. Takes 2 minutes to set up.</div>
 
         <div class="steps-row">
@@ -982,8 +980,8 @@ async function startSearch() {
   document.getElementById('search-bar').style.transition = 'width 0.3s ease';
   document.getElementById('demo-search-notice').classList.add('hidden');
 
-  // validation done in startSearchFromSetup
-  if (!selectedCountries.size) { alert('Select at least one country.'); return; }
+  const kws = keywords.filter(Boolean);
+  if (!selectedCountries.size || !kws.length) return;
 
   const countries = ALL_COUNTRIES.filter(([gl]) => selectedCountries.has(gl));
   const queries = [];
@@ -1375,18 +1373,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- ── MOBILE BOTTOM NAV ──────────────────────────────────────────────────── -->
 <nav class="mobile-nav" id="mobile-nav">
-  <button class="mobile-nav-item active" id="mn-setup" onclick="showPanel('setup')">
+  <div class="mobile-nav-item active" id="mn-setup" onclick="showPanel('setup')">
     <span class="mn-step">01</span>Setup
-  </button>
-  <button class="mobile-nav-item" id="mn-search" onclick="showPanel('search')">
+  </div>
+  <div class="mobile-nav-item" id="mn-search" onclick="showPanel('search')">
     <span class="mn-step">02</span>Search
-  </button>
-  <button class="mobile-nav-item locked" id="mn-contacts" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">
+  </div>
+  <div class="mobile-nav-item locked" id="mn-contacts" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">
     <span class="mn-step">03</span>Contacts
-  </button>
-  <button class="mobile-nav-item locked" id="mn-drafts" onclick="guardedNav('drafts')">
+  </div>
+  <div class="mobile-nav-item locked" id="mn-drafts" onclick="guardedNav('drafts')">
     <span class="mn-step">04</span>Drafts
-  </button>
+  </div>
 </nav>
 
 <!-- 100% privacy-first analytics -->
