@@ -247,8 +247,8 @@
       border-right: 1px solid var(--border); white-space: nowrap;
     }
     .mobile-nav-item:last-child { border-right: none; }
-    .mobile-nav-item { text-decoration: none !important; outline: none !important; border-top: none !important; border-bottom: none !important; border-left: none !important; }
-    .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); text-decoration: none !important; border: none !important; box-shadow: inset 0 -2px 0 var(--accent); }
+    .mobile-nav-item { text-decoration: none !important; outline: none !important; border: none !important; -webkit-appearance: none; appearance: none; }
+    .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); }
     .mobile-nav-item .mn-step {
       font-family: 'JetBrains Mono', monospace; font-size: 9px;
       background: var(--border); padding: 1px 5px; border-radius: 10px; line-height: 1.6;
@@ -270,7 +270,7 @@
 
     /* Table — mobile optimised */
     .tbl colgroup { display: none; }
-    /* Keyword column hidden by default on mobile — toggled via JS */
+
     /* Tight checkbox */
     .tbl th:nth-child(1), .tbl td:nth-child(1) { width: 28px !important; padding: 4px 4px 4px 8px; }
     /* Narrow number */
@@ -281,12 +281,16 @@
     .tbl th:nth-child(6), .tbl td:nth-child(6) { white-space: normal; word-break: break-all; font-size: 10px; padding: 4px 6px 4px 4px; }
     /* Domain column */
     .tbl th:nth-child(3), .tbl td:nth-child(3) { font-size: 11px; padding: 4px 4px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Always show KW header as toggle button */
+    #th-kw { display: table-cell !important; font-size: 10px; padding: 4px 4px; cursor: pointer; }
 
     /* Draft items stack */
     .draft-item > div:last-child > div:first-child { flex-direction: column; }
 
     /* Onboarding title smaller */
     .onboarding-title { font-size: 26px !important; }
+    .title-break { display: inline; }
+    .onboarding-title { display: block; }
     .onboarding-sub { font-size: 13px !important; }
   }
 
@@ -380,7 +384,7 @@
     <div class="panel active" id="panel-setup">
 
       <div class="onboarding" style="text-align:center;">
-        <div class="onboarding-title" style="font-size:32px;">Find Websites To<br><span>Pitch — Automatically</span></div>
+        <div class="onboarding-title" style="font-size:32px;"><span class="title-break">Find Websites To </span><span>Pitch — Automatically</span></div>
         <div class="onboarding-sub" style="font-size:15px;max-width:580px;margin-left:auto;margin-right:auto;margin-bottom:2rem;">Search Google across any country and niche, collect relevant sites, find their contact emails, and open personalised drafts in Gmail. Takes 2 minutes to set up.</div>
 
         <div class="steps-row">
@@ -450,7 +454,7 @@
         <p style="font-size:11px;color:var(--muted);">Free demo: up to 3 keywords.</p>
       </div>
 
-      <button class="btn btn-primary" onclick="showPanel('search');startSearch()">Start searching →</button>
+      <button class="btn btn-primary" onclick="startSearchFromSetup()">Start searching →</button>
     </div>
 
     <!-- ══ SEARCH ═════════════════════════════════════════════════════════════ -->
@@ -773,11 +777,26 @@ function toggleKwCol() {
 
 function applyKwColVisibility() {
   const show = kwColVisible;
-  document.querySelectorAll('.tbl th:nth-child(5), .tbl td:nth-child(5)').forEach(el => {
+  // Use both th and td selectors explicitly
+  document.querySelectorAll('#url-tbody td:nth-child(5)').forEach(el => {
     el.style.display = show ? '' : 'none';
   });
-  const arrow = document.getElementById('kw-col-arrow');
-  if (arrow) arrow.textContent = show ? '▾' : '▸';
+  const th = document.getElementById('th-kw');
+  if (th) {
+    // Always keep the header visible as the toggle button
+    const arrow = document.getElementById('kw-col-arrow');
+    if (arrow) arrow.textContent = show ? '▾' : '▸';
+    th.title = show ? 'Hide keyword column' : 'Show keyword column';
+  }
+}
+
+function startSearchFromSetup() {
+  flushKwInput();
+  const kws = keywords.filter(Boolean);
+  if (!selectedCountries.size) { alert('Please select at least one country.'); return; }
+  if (!kws.length) { alert('Add at least one keyword and press Enter or click Add.'); return; }
+  showPanel('search');
+  startSearch();
 }
 
 function flushKwInput() {
@@ -963,9 +982,7 @@ async function startSearch() {
   document.getElementById('search-bar').style.transition = 'width 0.3s ease';
   document.getElementById('demo-search-notice').classList.add('hidden');
 
-  flushKwInput(); // auto-add anything typed but not yet confirmed
-  const kws = keywords.filter(Boolean);
-  if (!kws.length) { alert('Add at least one keyword and press Enter or click Add.'); return; }
+  // validation done in startSearchFromSetup
   if (!selectedCountries.size) { alert('Select at least one country.'); return; }
 
   const countries = ALL_COUNTRIES.filter(([gl]) => selectedCountries.has(gl));
