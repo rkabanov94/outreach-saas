@@ -217,6 +217,65 @@
   .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.35); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
   @keyframes spin { to { transform:rotate(360deg); } }
   .btn-loading { opacity:0.85; cursor:not-allowed; pointer-events:none; }
+
+  /* ── MOBILE ─────────────────────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    header { padding: 0 1rem; }
+    .header-logo { font-size: 14px; }
+    .user-email { display: none; }
+
+    .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
+
+    /* Hide desktop sidebar */
+    nav { display: none; }
+
+    main { padding: 1rem; overflow-y: visible; }
+
+    /* Bottom nav bar */
+    .mobile-nav {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--surface); border-top: 1px solid var(--border);
+      z-index: 200; padding: 0; height: 56px;
+    }
+    .mobile-nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px; cursor: pointer;
+      font-size: 10px; font-weight: 600; color: var(--muted);
+      transition: color 0.15s; border: none; background: none;
+      font-family: 'Inter', sans-serif; padding: 6px 0;
+    }
+    .mobile-nav-item.active { color: var(--accent); }
+    .mobile-nav-item .mn-icon { font-size: 18px; line-height: 1; }
+    .mobile-nav-item.locked { opacity: 0.4; }
+
+    /* Add bottom padding so content isn't hidden behind nav */
+    main { padding-bottom: 72px; }
+
+    /* Steps row — 2 columns on mobile */
+    .steps-row { grid-template-columns: repeat(2, 1fr); }
+
+    /* Stats — 2 columns */
+    .stats { grid-template-columns: repeat(2, 1fr); }
+
+    /* Country tags — smaller */
+    .country-tag { font-size: 11px; padding: 4px 10px; }
+
+    /* Table — hide keyword column, make URL wrap */
+    .tbl colgroup { display: none; }
+    .tbl th:nth-child(5), .tbl td:nth-child(5) { display: none; }
+    .tbl td:last-child { white-space: normal; word-break: break-all; font-size: 10px; }
+
+    /* Draft items stack */
+    .draft-item > div:last-child > div:first-child { flex-direction: column; }
+
+    /* Onboarding title smaller */
+    .onboarding-title { font-size: 22px !important; }
+    .onboarding-sub { font-size: 13px !important; }
+  }
+
+  @media (min-width: 769px) {
+    .mobile-nav { display: none; }
+  }
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -739,9 +798,11 @@ function updateUI() {
     const lock    = document.getElementById(`lock-${id}`);
     const gate    = document.getElementById(`${id}-gate`);
     const content = document.getElementById(`${id}-content`);
+    const mlock   = document.getElementById(`mn-${id}`);
     if (lock)    lock.style.display    = isPaid() ? 'none' : '';
     if (gate)    gate.style.display    = isPaid() ? 'none' : '';
     if (content) content.style.display = isPaid() ? '' : 'none';
+    if (mlock)   mlock.classList.toggle('locked', !isPaid());
   });
 }
 
@@ -842,7 +903,13 @@ function showPanel(id, pushHistory = true) {
   ['setup','search','contacts','drafts'].forEach((p, i) => {
     if (p === id) document.querySelectorAll('.nav-item')[i].classList.add('active');
   });
+  // Sync mobile nav
+  ['setup','search','contacts','drafts'].forEach(p => {
+    const el = document.getElementById('mn-' + p);
+    if (el) el.classList.toggle('active', p === id);
+  });
   document.querySelector('main').scrollTop = 0;
+  window.scrollTo(0, 0);
   if (pushHistory) history.pushState({ panel: id }, '', '#' + id);
 }
 
@@ -1253,6 +1320,23 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('auth-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAuthModal(); });
 });
 </script>
+
+<!-- ── MOBILE BOTTOM NAV ──────────────────────────────────────────────────── -->
+<nav class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-item active" id="mn-setup" onclick="showPanel('setup')">
+    <span class="mn-icon">⚙️</span>Setup
+  </button>
+  <button class="mobile-nav-item" id="mn-search" onclick="showPanel('search')">
+    <span class="mn-icon">🔍</span>Search
+  </button>
+  <button class="mobile-nav-item locked" id="mn-contacts" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">
+    <span class="mn-icon">👤</span>Contacts
+  </button>
+  <button class="mobile-nav-item locked" id="mn-drafts" onclick="guardedNav('drafts')">
+    <span class="mn-icon">✉️</span>Drafts
+  </button>
+</nav>
+
 <!-- 100% privacy-first analytics -->
 <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
 <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
