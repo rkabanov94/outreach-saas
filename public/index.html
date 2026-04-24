@@ -233,19 +233,26 @@
 
     /* Bottom nav bar */
     .mobile-nav {
-      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex !important; flex-direction: row !important;
+      position: fixed; bottom: 0; left: 0; right: 0;
       background: var(--surface); border-top: 1px solid var(--border);
-      z-index: 200; padding: 0; height: 56px;
+      z-index: 200; height: 52px; overflow: hidden;
     }
     .mobile-nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 3px; cursor: pointer;
-      font-size: 10px; font-weight: 600; color: var(--muted);
+      flex: 1; display: flex; flex-direction: row; align-items: center;
+      justify-content: center; gap: 6px; cursor: pointer;
+      font-size: 11px; font-weight: 600; color: var(--muted);
       transition: color 0.15s; border: none; background: none;
-      font-family: 'Inter', sans-serif; padding: 6px 0;
+      font-family: 'Inter', sans-serif; padding: 0 4px;
+      border-right: 1px solid var(--border); white-space: nowrap;
     }
-    .mobile-nav-item.active { color: var(--accent); }
-    .mobile-nav-item .mn-icon { font-size: 18px; line-height: 1; }
+    .mobile-nav-item:last-child { border-right: none; }
+    .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); }
+    .mobile-nav-item .mn-step {
+      font-family: 'JetBrains Mono', monospace; font-size: 9px;
+      background: var(--border); padding: 1px 5px; border-radius: 10px; line-height: 1.6;
+    }
+    .mobile-nav-item.active .mn-step { background: var(--accent); color: #fff; }
     .mobile-nav-item.locked { opacity: 0.4; }
 
     /* Add bottom padding so content isn't hidden behind nav */
@@ -260,16 +267,26 @@
     /* Country tags — smaller */
     .country-tag { font-size: 11px; padding: 4px 10px; }
 
-    /* Table — hide keyword column, make URL wrap */
+    /* Table — mobile optimised */
     .tbl colgroup { display: none; }
+    /* Hide keyword column (col 5) */
     .tbl th:nth-child(5), .tbl td:nth-child(5) { display: none; }
-    .tbl td:last-child { white-space: normal; word-break: break-all; font-size: 10px; }
+    /* Tight checkbox */
+    .tbl th:nth-child(1), .tbl td:nth-child(1) { width: 28px !important; padding: 4px 4px 4px 8px; }
+    /* Narrow number */
+    .tbl th:nth-child(2), .tbl td:nth-child(2) { width: 20px !important; padding: 4px 4px; font-size: 10px; }
+    /* Country badge compact */
+    .tbl th:nth-child(4), .tbl td:nth-child(4) { width: 36px !important; padding: 4px 4px; }
+    /* URL gets remaining space, wraps */
+    .tbl th:nth-child(6), .tbl td:nth-child(6) { white-space: normal; word-break: break-all; font-size: 10px; padding: 4px 6px 4px 4px; }
+    /* Domain column */
+    .tbl th:nth-child(3), .tbl td:nth-child(3) { font-size: 11px; padding: 4px 4px; }
 
     /* Draft items stack */
     .draft-item > div:last-child > div:first-child { flex-direction: column; }
 
     /* Onboarding title smaller */
-    .onboarding-title { font-size: 22px !important; }
+    .onboarding-title { font-size: 26px !important; }
     .onboarding-sub { font-size: 13px !important; }
   }
 
@@ -1324,16 +1341,16 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- ── MOBILE BOTTOM NAV ──────────────────────────────────────────────────── -->
 <nav class="mobile-nav" id="mobile-nav">
   <button class="mobile-nav-item active" id="mn-setup" onclick="showPanel('setup')">
-    <span class="mn-icon">⚙️</span>Setup
+    <span class="mn-step">01</span>Setup
   </button>
   <button class="mobile-nav-item" id="mn-search" onclick="showPanel('search')">
-    <span class="mn-icon">🔍</span>Search
+    <span class="mn-step">02</span>Search
   </button>
   <button class="mobile-nav-item locked" id="mn-contacts" onclick="guardedNav('contacts');if(isPaid())startContactSearch()">
-    <span class="mn-icon">👤</span>Contacts
+    <span class="mn-step">03</span>Contacts
   </button>
   <button class="mobile-nav-item locked" id="mn-drafts" onclick="guardedNav('drafts')">
-    <span class="mn-icon">✉️</span>Drafts
+    <span class="mn-step">04</span>Drafts
   </button>
 </nav>
 
