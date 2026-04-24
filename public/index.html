@@ -247,7 +247,8 @@
       border-right: 1px solid var(--border); white-space: nowrap;
     }
     .mobile-nav-item:last-child { border-right: none; }
-    .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); }
+    .mobile-nav-item { text-decoration: none !important; outline: none; }
+    .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); text-decoration: none; border-bottom: none; }
     .mobile-nav-item .mn-step {
       font-family: 'JetBrains Mono', monospace; font-size: 9px;
       background: var(--border); padding: 1px 5px; border-radius: 10px; line-height: 1.6;
@@ -280,7 +281,7 @@
     /* URL gets remaining space, wraps */
     .tbl th:nth-child(6), .tbl td:nth-child(6) { white-space: normal; word-break: break-all; font-size: 10px; padding: 4px 6px 4px 4px; }
     /* Domain column */
-    .tbl th:nth-child(3), .tbl td:nth-child(3) { font-size: 11px; padding: 4px 4px; }
+    .tbl th:nth-child(3), .tbl td:nth-child(3) { font-size: 11px; padding: 4px 4px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* Draft items stack */
     .draft-item > div:last-child > div:first-child { flex-direction: column; }
@@ -380,7 +381,7 @@
     <div class="panel active" id="panel-setup">
 
       <div class="onboarding" style="text-align:center;">
-        <div class="onboarding-title" style="font-size:32px;">Find Websites To <span>Pitch — Automatically</span></div>
+        <div class="onboarding-title" style="font-size:32px;">Find Websites To<br><span>Pitch — Automatically</span></div>
         <div class="onboarding-sub" style="font-size:15px;max-width:580px;margin-left:auto;margin-right:auto;margin-bottom:2rem;">Search Google across any country and niche, collect relevant sites, find their contact emails, and open personalised drafts in Gmail. Takes 2 minutes to set up.</div>
 
         <div class="steps-row">
@@ -490,7 +491,7 @@
           </colgroup>
           <thead><tr>
             <th><input type="checkbox" id="url-check-all" checked onchange="setAllUrlChecked(this.checked)" style="cursor:pointer;accent-color:var(--accent);"></th>
-            <th>#</th><th>Domain</th><th>Country</th><th>Keyword</th><th>URL</th>
+            <th>#</th><th>Domain</th><th>Geo</th><th>Keyword</th><th>URL</th>
           </tr></thead>
           <tbody id="url-tbody"></tbody>
         </table>
