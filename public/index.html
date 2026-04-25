@@ -246,11 +246,14 @@
       font-family: 'Inter', sans-serif; padding: 0 4px;
       white-space: nowrap; text-decoration: none !important;
       outline: none !important; -webkit-appearance: none; appearance: none;
+      -webkit-tap-highlight-color: transparent;
     }
+    .mobile-nav-item *, .mobile-nav-item { text-decoration: none !important; }
 
 
-    .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); }
-    .mobile-nav-item .mn-step { display: none; }
+    .mobile-nav-item.active { color: var(--accent); background: none; border-top: 2px solid var(--accent) !important; }
+    .mobile-nav-item .mn-step { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; opacity: 0.5; }
+    .mobile-nav-item.active .mn-step { opacity: 1; color: var(--accent); }
     .mobile-nav-item.locked { opacity: 0.4; }
 
     /* Add bottom padding so content isn't hidden behind nav */
