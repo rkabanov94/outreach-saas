@@ -242,18 +242,15 @@
       flex: 1; display: flex; flex-direction: row; align-items: center;
       justify-content: center; gap: 6px; cursor: pointer;
       font-size: 11px; font-weight: 600; color: var(--muted);
-      transition: color 0.15s; border: none; background: none;
+      transition: color 0.15s; border: none !important; background: none;
       font-family: 'Inter', sans-serif; padding: 0 4px;
-      border-right: 1px solid var(--border); white-space: nowrap;
+      white-space: nowrap; text-decoration: none !important;
+      outline: none !important; -webkit-appearance: none; appearance: none;
     }
-    .mobile-nav-item:last-child { border-right: none; }
-    .mobile-nav-item { text-decoration: none !important; outline: none !important; border: none !important; -webkit-appearance: none; appearance: none; }
+
+
     .mobile-nav-item.active { color: var(--accent); background: var(--accent-glow); }
-    .mobile-nav-item .mn-step {
-      font-family: 'JetBrains Mono', monospace; font-size: 9px;
-      background: var(--border); padding: 1px 5px; border-radius: 10px; line-height: 1.6;
-    }
-    .mobile-nav-item.active .mn-step { background: var(--accent); color: #fff; }
+    .mobile-nav-item .mn-step { display: none; }
     .mobile-nav-item.locked { opacity: 0.4; }
 
     /* Add bottom padding so content isn't hidden behind nav */
@@ -281,8 +278,7 @@
     .tbl th:nth-child(6), .tbl td:nth-child(6) { white-space: normal; word-break: break-all; font-size: 10px; padding: 4px 6px 4px 4px; }
     /* Domain column */
     .tbl th:nth-child(3), .tbl td:nth-child(3) { font-size: 11px; padding: 4px 4px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    /* Always show KW header as toggle button */
-    #th-kw { display: table-cell !important; font-size: 10px; padding: 4px 4px; cursor: pointer; }
+
 
     /* Draft items stack */
     .draft-item > div:last-child > div:first-child { flex-direction: column; }
@@ -492,7 +488,7 @@
           </colgroup>
           <thead><tr>
             <th><input type="checkbox" id="url-check-all" checked onchange="setAllUrlChecked(this.checked)" style="cursor:pointer;accent-color:var(--accent);"></th>
-            <th>#</th><th>Domain</th><th>Geo</th><th id="th-kw" style="cursor:pointer;" onclick="toggleKwCol()" title="Show/hide keyword column">KW <span id="kw-col-arrow">▾</span></th><th>URL</th>
+            <th>#</th><th>Domain</th><th>Geo</th><th>Keyword</th><th>URL</th>
           </tr></thead>
           <tbody id="url-tbody"></tbody>
         </table>
@@ -766,28 +762,6 @@ function syncSuggestions() {
 }
 
 // Auto-add anything typed but not yet added when user starts search
-let kwColVisible = window.innerWidth > 768;
-
-function toggleKwCol() {
-  kwColVisible = !kwColVisible;
-  applyKwColVisibility();
-}
-
-function applyKwColVisibility() {
-  const show = kwColVisible;
-  // Use both th and td selectors explicitly
-  document.querySelectorAll('#url-tbody td:nth-child(5)').forEach(el => {
-    el.style.display = show ? '' : 'none';
-  });
-  const th = document.getElementById('th-kw');
-  if (th) {
-    // Always keep the header visible as the toggle button
-    const arrow = document.getElementById('kw-col-arrow');
-    if (arrow) arrow.textContent = show ? '▾' : '▸';
-    th.title = show ? 'Hide keyword column' : 'Show keyword column';
-  }
-}
-
 function startSearchFromSetup() {
   flushKwInput();
   const kws = keywords.filter(Boolean);
@@ -1034,8 +1008,7 @@ async function startSearch() {
     document.getElementById('s-unique').textContent   = allUrls.length;
     document.getElementById('search-status').textContent = `${allUrls.length} unique domains`;
     document.getElementById('search-bar').style.width = '100%';
-    applyKwColVisibility();
-  log('search-log', `Done — ${allUrls.length} unique domains.`, 'ok');
+    log('search-log', `Done — ${allUrls.length} unique domains.`, 'ok');
     // Show demo hint for non-paid users
     const hint = document.getElementById('demo-select-hint');
     if (hint && !isPaid() && allUrls.length > 0) hint.style.display = '';
@@ -1362,7 +1335,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   document.getElementById('reg-password').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
   document.getElementById('kw-input').addEventListener('keydown', e => { if (e.key === 'Enter') addKw(); });
-  applyKwColVisibility(); // apply kw column visibility on load
   // Restore panel from URL hash (e.g. on browser back)
   const hash = location.hash.replace('#', '');
   if (['setup','search','contacts','drafts'].includes(hash)) showPanel(hash, false);
