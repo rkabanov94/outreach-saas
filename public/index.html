@@ -121,9 +121,11 @@
 
   /* ── COUNTRY TAGS ── */
   .country-search-wrap { position: relative; margin-bottom: 10px; }
+  .country-tags-wrap { position: relative; }
+  .country-tags-wrap::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px; background: linear-gradient(to bottom, transparent, var(--surface)); pointer-events: none; border-radius: 0 0 8px 8px; }
   .country-search-wrap input { padding-left: 32px; }
   .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
-  .country-tags { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; padding: 4px 0; }
+  .country-tags { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; padding: 4px 0 32px 0; }
   .country-tag {
     display: inline-flex; align-items: center; gap: 4px;
     background: var(--surface2); border: 1px solid var(--border);
@@ -287,7 +289,7 @@
     .draft-item > div:last-child > div:first-child { flex-direction: column; }
 
     /* Onboarding title smaller */
-    .onboarding-title { font-size: 24px !important; word-break: normal; overflow-wrap: break-word; }
+    .onboarding-title { font-size: 28px !important; word-break: normal; overflow-wrap: break-word; }
     .onboarding-sub { font-size: 13px !important; }
   }
 
@@ -419,7 +421,7 @@
           <span class="search-icon">🔍</span>
           <input type="text" id="country-search" placeholder="Search countries…" oninput="filterCountries()" />
         </div>
-        <div class="country-tags" id="country-tags"></div>
+        <div class="country-tags-wrap"><div class="country-tags" id="country-tags"></div></div>
         <div class="country-actions">
           <button class="btn btn-sm" onclick="selectAllVisible()">Select all visible</button>
           <button class="btn btn-sm" onclick="clearCountries()">Clear</button>
