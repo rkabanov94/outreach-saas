@@ -1276,16 +1276,56 @@ function importUrlsCSV(event) {
     allUrls = [];
     const domainSet = new Set();
     document.getElementById('url-tbody').innerHTML = '';
-    for (const line of e.target.result.trim().split('\n').slice(1)) {
-      const cols = parseCSV(line); if (cols.length < 5) continue;
-      const [, rawDomain, country, keyword, url] = cols;
-      const root = rootDomain(url || `https://${rawDomain}`);
-      if (root && !domainSet.has(root)) {
-        domainSet.add(root);
-        allUrls.push({ url: url || `https://${rawDomain}`, domain: root, country, keyword, _checked: true });
-        addUrlRow(allUrls[allUrls.length-1], allUrls.length);
+
+    // Strip BOM if present
+    const raw = e.target.result.replace(/^\uFEFF/, '').trim();
+    const lines = raw.split('\n');
+    const header = parseCSV(lines[0]).map(h => h.toLowerCase().trim());
+
+    // Detect format by header
+    const hasUrl    = header.some(h => h === 'url');
+    const hasDomain = header.some(h => h === 'domain');
+    const isOurExport = header.includes('#') || (header[0] === '' && header[1] === 'domain');
+
+    for (const line of lines.slice(1)) {
+      if (!line.trim()) continue;
+      const cols = parseCSV(line);
+      let url = '', domain = '', country = '', keyword = '';
+
+      if (isOurExport && cols.length >= 5) {
+        // Our format: #, Domain, Country, Keyword, URL
+        domain  = cols[1] || '';
+        country = cols[2] || '';
+        keyword = cols[3] || '';
+        url     = cols[4] || '';
+      } else if (hasUrl) {
+        // Single URL column
+        const idx = header.findIndex(h => h === 'url');
+        url = cols[idx] || cols[0] || '';
+        country = header.includes('country') ? (cols[header.indexOf('country')] || '') : '';
+        keyword = header.includes('keyword') ? (cols[header.indexOf('keyword')] || '') : '';
+      } else if (hasDomain) {
+        // Single domain column
+        const idx = header.findIndex(h => h === 'domain');
+        domain = cols[idx] || cols[0] || '';
+      } else {
+        // No header match — assume first col is url or domain
+        const first = (cols[0] || '').trim();
+        if (first.startsWith('http')) url = first;
+        else domain = first;
       }
+
+      // Normalise
+      if (!url && domain) url = `https://${domain}`;
+      if (!domain && url) domain = url;
+      const root = rootDomain(url);
+      if (!root || domainSet.has(root)) continue;
+
+      domainSet.add(root);
+      allUrls.push({ url, domain: root, country, keyword, _checked: true });
+      addUrlRow(allUrls[allUrls.length - 1], allUrls.length);
     }
+
     document.getElementById('url-empty').style.display = allUrls.length ? 'none' : 'block';
     document.getElementById('s-unique').textContent = allUrls.length;
     showPanel('search');
